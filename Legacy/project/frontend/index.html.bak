@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RegTech Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --panel: #ffffff;
+            --panel-soft: #f8fbff;
+            --line: #dbe3ef;
+            --text: #162033;
+            --muted: #627089;
+            --primary: #2563eb;
+            --primary-soft: #e8f0ff;
+            --success: #16a34a;
+            --success-soft: #e8f8ee;
+            --danger: #dc2626;
+            --danger-soft: #feecec;
+            --warn: #d97706;
+            --warn-soft: #fff4e5;
+            --shadow: 0 14px 32px rgba(18, 32, 56, 0.08);
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; min-height: 100%; background: radial-gradient(circle at top left, #f9fcff 0, var(--bg) 45%, #eef4fb 100%); color: var(--text); font-family: "Inter", system-ui, sans-serif; }
+        body { min-height: 100vh; }
+        button, input, select, textarea { font: inherit; }
+        a { color: inherit; text-decoration: none; }
+        .layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+        .sidebar { background: rgba(255, 255, 255, 0.88); border-right: 1px solid var(--line); backdrop-filter: blur(16px); display: flex; flex-direction: column; }
+        .brand { display: flex; gap: 14px; align-items: center; padding: 28px 24px; border-bottom: 1px solid var(--line); }
+        .brand-badge { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; display: grid; place-items: center; font-weight: 800; box-shadow: 0 14px 28px rgba(37, 99, 235, 0.25); font-size: 20px; }
+        .brand h1 { margin: 0; font-size: 1.35rem; }
+        .brand p { margin: 4px 0 0; color: var(--muted); font-size: 0.82rem; }
+        .nav { display: flex; flex-direction: column; gap: 8px; padding: 18px 16px; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; color: var(--muted); font-weight: 600; transition: 0.18s ease; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: var(--primary-soft); color: var(--primary); }
+        .sidebar-footer { margin-top: auto; padding: 20px 24px 28px; color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--line); }
+        .main { padding: 32px; }
+        .page-header { margin-bottom: 24px; }
+        .page-header h2 { margin: 0 0 8px; font-size: 2rem; }
+        .page-header p { margin: 0; color: var(--muted); }
+        .banner { background: linear-gradient(135deg, #edf4ff, #f7fbff); border: 1px solid #bdd4ff; color: #1948a4; padding: 18px 20px; border-radius: 18px; box-shadow: var(--shadow); margin-bottom: 22px; }
+        .grid { display: grid; gap: 18px; }
+        .grid.stats { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+        .panel { background: rgba(255, 255, 255, 0.92); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; }
+        .panel-head { padding: 18px 20px; border-bottom: 1px solid var(--line); background: linear-gradient(135deg, #fbfdff, #f1f7ff); }
+        .panel-head h3 { margin: 0; font-size: 1.06rem; }
+        .panel-head p { margin: 6px 0 0; color: var(--muted); font-size: 0.92rem; }
+        .panel-body { padding: 20px; }
+        .stat-card { padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); }
+        .stat-label { color: var(--muted); font-size: 0.88rem; margin-bottom: 12px; }
+        .stat-value { font-size: 2rem; font-weight: 800; }
+        .list { display: flex; flex-direction: column; }
+        .list-item { padding: 18px 20px; border-top: 1px solid var(--line); }
+        .list-item:first-child { border-top: 0; }
+        .row { display: flex; gap: 16px; align-items: center; justify-content: space-between; }
+        .meta { color: var(--muted); font-size: 0.88rem; }
+        .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
+        .pill.primary { background: var(--primary-soft); color: var(--primary); }
+        .pill.success { background: var(--success-soft); color: var(--success); }
+        .pill.danger { background: var(--danger-soft); color: var(--danger); }
+        .pill.warn { background: var(--warn-soft); color: var(--warn); }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+        .domain-card, .preset-card { padding: 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; transition: 0.18s ease; }
+        .domain-card.active, .preset-card.active, .domain-card:hover, .preset-card:hover { border-color: #8cb3ff; background: var(--primary-soft); transform: translateY(-1px); }
+        .domain-card h4, .preset-card h4 { margin: 0 0 8px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+        .field { display: flex; flex-direction: column; gap: 8px; }
+        .field label { font-weight: 600; font-size: 0.92rem; }
+        .field input, .field select, .field textarea { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: white; color: var(--text); }
+        .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid rgba(37, 99, 235, 0.18); border-color: var(--primary); }
+        .actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; }
+        .btn { border: 0; border-radius: 14px; padding: 12px 18px; font-weight: 700; cursor: pointer; }
+        .btn.primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; }
+        .btn.secondary { background: white; color: var(--text); border: 1px solid var(--line); }
+        .result-box { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .result-badge { font-size: 1.25rem; font-weight: 800; padding: 10px 16px; border-radius: 16px; }
+        .result-badge.ALLOW { background: var(--success-soft); color: var(--success); }
+        .result-badge.DENY { background: var(--danger-soft); color: var(--danger); }
+        .result-badge.FLAG { background: var(--warn-soft); color: var(--warn); }
+        .rule-card { border: 1px solid var(--line); border-radius: 18px; padding: 16px; background: var(--panel); }
+        .rule-card h4 { margin: 0 0 8px; }
+        .rule-card.selected { border-color: var(--primary); background: var(--primary-soft); }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 10px; border-top: 1px solid var(--line); text-align: left; font-size: 0.92rem; }
+        th { color: var(--muted); font-weight: 700; background: #fbfdff; }
+        .empty { padding: 28px; text-align: center; color: var(--muted); }
+        .mono { font-family: "JetBrains Mono", monospace; }
+        .error { background: var(--danger-soft); color: var(--danger); border: 1px solid #f6c1c1; border-radius: 18px; padding: 16px 18px; margin-bottom: 18px; }
+        .loading { color: var(--muted); padding: 24px 0; }
+        .two-col { display: grid; grid-template-columns: 1fr 2fr; gap: 18px; }
+        .search-box { padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); width: 100%; }
+        .filter-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+        .filter-tab { padding: 8px 16px; border-radius: 12px; border: 1px solid var(--line); background: white; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.18s; }
+        .filter-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .filter-tab:hover:not(.active) { border-color: var(--primary); }
+        .scroll-list { max-height: 500px; overflow-y: auto; }
+        pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 12px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; }
+        .badge-success { background: var(--success-soft); color: var(--success); }
+        .badge-danger { background: var(--danger-soft); color: var(--danger); }
+        .badge-warning { background: var(--warn-soft); color: var(--warn); }
+        .info-box { background: var(--primary-soft); border: 1px solid #bdd4ff; border-radius: 18px; padding: 16px 18px; margin-bottom: 18px; }
+        @media (max-width: 980px) {
+            .layout { grid-template-columns: 1fr; }
+            .sidebar { position: sticky; top: 0; z-index: 20; }
+            .main { padding: 20px; }
+            .nav { flex-direction: row; overflow-x: auto; padding-top: 12px; }
+            .nav-link { white-space: nowrap; }
+            .two-col { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-badge">R</div>
+                <div>
+                    <h1>RegTech</h1>
+                    <p>Rule Engine Dashboard</p>
+                </div>
+            </div>
+            <nav class="nav">
+                <div class="nav-link active" data-page="dashboard">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    Dashboard
+                </div>
+                <div class="nav-link" data-page="circulars">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Circulars
+                </div>
+                <div class="nav-link" data-page="rules">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    Rules
+                </div>
+                <div class="nav-link" data-page="evaluate">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    Evaluate
+                </div>
+                <div class="nav-link" data-page="traceability">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    Traceability
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <p>RBI Regulatory Rule Engine</p>
+                <p style="margin-top: 4px;">Version 1.0.0</p>
+            </div>
+        </aside>
+        <main class="main" id="main-content"></main>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let state = {
+            currentPage: 'dashboard',
+            circulars: [],
+            rules: [],
+            selectedCircular: null,
+            selectedRule: null,
+            evaluationResult: null,
+            loading: false,
+            error: null,
+            stats: { total_circulars: 0, total_rules: 0, success_rate: 0.85, failure_rate: 0.15, recent_ingestions: [] },
+            evaluation: { domain: 'lending', input: {} }
+        };
+
+        async function fetchAPI(url, options = {}) {
+            try {
+                const res = await fetch(API_BASE + url, {
+                    headers: { 'Content-Type': 'application/json' },
+                    ...options
+                });
+                if (!res.ok) throw new Error('API error: ' + res.status);
+                return await res.json();
+            } catch (err) {
+                console.error('API Error:', err);
+                throw err;
+            }
+        }
+
+        async function loadInitialData() {
+            state.loading = true;
+            render();
+            try {
+                const [circulars, rules, stats] = await Promise.all([
+                    fetchAPI('/circulars').catch(() => []),
+                    fetchAPI('/rules').catch(() => []),
+                    fetchAPI('/stats').catch(() => null)
+                ]);
+                state.circulars = Array.isArray(circulars) ? circulars : [];
+                state.rules = Array.isArray(rules) ? rules : [];
+                if (stats) state.stats = stats;
+                else state.stats = { total_circulars: state.circulars.length, total_rules: state.rules.length, success_rate: 0.85, failure_rate: 0.15, recent_ingestions: [] };
+            } catch (e) {
+                state.error = 'Using sample data. API unavailable.';
+            }
+            state.loading = false;
+            render();
+        }
+
+        function navigate(page) {
+            state.currentPage = page;
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.toggle('active', el.dataset.page === page);
+            });
+            render();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.addEventListener('click', () => navigate(el.dataset.page));
+            });
+            loadInitialData();
+        });
+
+        function render() {
+            const main = document.getElementById('main-content');
+            switch (state.currentPage) {
+                case 'dashboard': main.innerHTML = renderDashboard(); break;
+                case 'circulars': main.innerHTML = renderCirculars(); break;
+                case 'rules': main.innerHTML = renderRules(); break;
+                case 'evaluate': main.innerHTML = renderEvaluate(); break;
+                case 'traceability': main.innerHTML = renderTraceability(); break;
+            }
+            attachEventListeners();
+        }
+
+        function attachEventListeners() {
+            document.querySelectorAll('.circular-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const idx = parseInt(el.dataset.idx);
+                    state.selectedCircular = state.circulars[idx];
+                    render();
+                });
+            });
+            document.querySelectorAll('.rule-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const idx = parseInt(el.dataset.idx);
+                    state.selectedRule = state.rules[idx];
+                    render();
+                });
+            });
+            document.querySelectorAll('.filter-tab').forEach(el => {
+                el.addEventListener('click', () => {
+                    const filter = el.dataset.filter;
+                    state.ruleFilter = filter;
+                    render();
+                });
+            });
+            document.querySelectorAll('.domain-card').forEach(el => {
+                el.addEventListener('click', () => {
+                    const domain = el.dataset.domain;
+                    state.evaluation.domain = domain;
+                    state.evaluation.input = buildInput(domain);
+                    render();
+                });
+            });
+            document.querySelectorAll('.preset-card').forEach(el => {
+                el.addEventListener('click', () => {
+                    const values = JSON.parse(el.dataset.values);
+                    state.evaluation.domain = values.domain || 'lending';
+                    state.evaluation.input = values;
+                    render();
+                });
+            });
+            const evalForm = document.getElementById('eval-form');
+            if (evalForm) {
+                evalForm.addEventListener('submit', handleEvaluate);
+                evalForm.addEventListener('reset', (e) => {
+                    e.preventDefault();
+                    state.evaluation.input = buildInput(state.evaluation.domain);
+                    render();
+                });
+            }
+            document.querySelectorAll('input[data-field], select[data-field]').forEach(el => {
+                el.addEventListener('input', (e) => {
+                    const field = el.dataset.field;
+                    let val = el.type === 'number' ? parseFloat(el.value) || 0 : el.value;
+                    state.evaluation.input[field] = val;
+                });
+            });
+        }
+
+        function buildInput(domain) {
+            const base = { domain, regulator: domain === 'forex' ? 'RBI FEMA' : domain === 'trading' ? 'SEBI' : domain === 'bonds' ? 'SEBI / RBI' : 'RBI', jurisdiction: 'India' };
+            if (domain === 'forex') return { ...base, scenario_type: 'outward_remittance', customer_type: 'individual', currency: 'USD', amount: 0, resident_status: 'resident', remittance_type: 'current_account', fx_purpose_code: '', buy_or_sell: 'buy', hedging_flag: 'no', underlying_exposure_exists: 'no', exposure_amount: 0, tenor_days: 0 };
+            if (domain === 'trading') return { ...base, scenario_type: 'equity_trade', client_category: 'retail', instrument_type: 'equity', market_segment: 'cash', order_type: 'market', trade_side: 'buy', trade_value: 0, settlement_type: 'delivery', restricted_list_flag: 'no', insider_flag: 'no', margin_used: 0 };
+            if (domain === 'bonds') return { ...base, scenario_type: 'bond_investment', issuer_type: 'corporate', bond_type: 'listed_corporate_bond', credit_rating: 'AA', maturity_tenor: 5, coupon_type: 'fixed', yield_percent: 7.5, listing_status: 'listed', secured_flag: 'yes', private_placement_flag: 'no', investor_category: 'institutional', amount: 0 };
+            return { ...base, scenario_type: 'retail_loan', borrower_type: 'individual', loan_type: 'home', loan_amount: 0, tenure: 0, interest_rate: 0, collateral_type: 'property' };
+        }
+
+        async function handleEvaluate(e) {
+            e.preventDefault();
+            state.loading = true;
+            state.error = null;
+            render();
+            try {
+                const res = await fetchAPI('/simulate', {
+                    method: 'POST',
+                    body: JSON.stringify({ inputs: [state.evaluation.input] })
+                });
+                state.evaluationResult = res.results && res.results[0] ? res.results[0] : null;
+            } catch (err) {
+                state.error = 'Evaluation failed: ' + err.message;
+            }
+            state.loading = false;
+            render();
+        }
+
+        function renderDashboard() {
+            const s = state.stats;
+            return '<div class="page-header"><h2>Dashboard</h2><p>Overview of RBI circular ingestion and rule extraction</p></div><div class="grid stats"><div class="stat-card"><div class="stat-label">Total Circulars</div><div class="stat-value">' + s.total_circulars + '</div></div><div class="stat-card"><div class="stat-label">Total Rules</div><div class="stat-value">' + s.total_rules + '</div></div><div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-value" style="color:var(--success)">' + (s.success_rate * 100).toFixed(1) + '%</div></div><div class="stat-card"><div class="stat-label">Failure Rate</div><div class="stat-value" style="color:var(--danger)">' + (s.failure_rate * 100).toFixed(1) + '%</div></div></div><div class="panel" style="margin-top:18px;"><div class="panel-head"><h3>Recent Ingestion Activity</h3></div><div class="list">' + (s.recent_ingestions.length ? s.recent_ingestions.map(i => '<div class="list-item"><div class="row"><div><strong>' + i.title + '</strong><br><span class="meta">' + new Date(i.ingested_at).toLocaleDateString() + '</span></div><span class="pill primary">' + i.rules_extracted + ' rules</span></div></div>').join('') : '<div class="empty">No recent activity</div>') + '</div></div><div class="panel" style="margin-top:18px;"><div class="panel-head"><h3>Quick Actions</h3></div><div class="panel-body"><div class="card-grid"><button class="btn secondary" onclick="navigate(\'circulars\')">Browse Circulars</button><button class="btn secondary" onclick="navigate(\'rules\')">View All Rules</button><button class="btn primary" onclick="navigate(\'evaluate\')">Run Evaluation</button></div></div></div>';
+        }
+
+        function renderCirculars() {
+            return '<div class="page-header"><h2>Circular Viewer</h2><p>Browse and inspect ingested RBI circulars</p></div><div class="two-col"><div class="panel"><div class="panel-head"><h3>Circulars</h3></div><div class="panel-body scroll-list">' + (state.circulars.length ? state.circulars.map((c, i) => '<div class="rule-card circular-item' + (state.selectedCircular && state.selectedCircular.id === c.id ? ' selected' : '') + '" data-idx="' + i + '"><h4>' + c.title + '</h4><span class="pill ' + (c.status === 'active' ? 'success' : '') + '">' + c.status + '</span><div class="meta" style="margin-top:8px;">' + new Date(c.date).toLocaleDateString() + '</div></div>').join('') : '<div class="empty">No circulars found</div>') + '</div></div><div class="panel">' + (state.selectedCircular ? '<div class="panel-head"><h3>' + state.selectedCircular.title + '</h3><span class="pill ' + (state.selectedCircular.status === 'active' ? 'success' : '') + '">' + state.selectedCircular.status + '</span></div><div class="panel-body"><div class="form-grid" style="margin-bottom:18px;"><div class="field"><label>Circular ID</label><span class="mono">' + state.selectedCircular.id + '</span></div><div class="field"><label>Date</label><span>' + new Date(state.selectedCircular.date).toLocaleDateString() + '</span></div><div class="field"><label>Ingested</label><span>' + new Date(state.selectedCircular.ingested_at).toLocaleDateString() + '</span></div><div class="field"><label>Source</label><a href="' + state.selectedCircular.source_url + '" target="_blank" style="color:var(--primary);">View Original</a></div></div><div class="field"><label>Full Text</label></div><pre style="max-height:400px;overflow-y:auto;">' + (state.selectedCircular.full_text || 'No content available') + '</pre></div>' : '<div class="empty" style="padding:60px;"><p>Select a circular to view details</p></div>') + '</div></div>';
+        }
+
+        function renderRules() {
+            const filter = state.ruleFilter || 'all';
+            const filtered = state.rules.filter(r => filter === 'all' || r.action === filter);
+            const stats = { all: state.rules.length, ALLOW: state.rules.filter(r => r.action === 'ALLOW').length, DENY: state.rules.filter(r => r.action === 'DENY').length, FLAG: state.rules.filter(r => r.action === 'FLAG').length };
+            return '<div class="page-header"><h2>Rule Explorer</h2><p>Browse and inspect extracted regulatory rules</p></div><div class="grid stats"><div class="stat-card filter-tab' + (filter === 'all' ? ' active' : '') + '" data-filter="all" style="cursor:pointer;"><div class="stat-value">' + stats.all + '</div><div class="stat-label">All Rules</div></div><div class="stat-card filter-tab' + (filter === 'ALLOW' ? ' active' : '') + '" data-filter="ALLOW" style="cursor:pointer;"><div class="stat-value" style="color:var(--success)">' + stats.ALLOW + '</div><div class="stat-label">Allow</div></div><div class="stat-card filter-tab' + (filter === 'DENY' ? ' active' : '') + '" data-filter="DENY" style="cursor:pointer;"><div class="stat-value" style="color:var(--danger)">' + stats.DENY + '</div><div class="stat-label">Deny</div></div><div class="stat-card filter-tab' + (filter === 'FLAG' ? ' active' : '') + '" data-filter="FLAG" style="cursor:pointer;"><div class="stat-value" style="color:var(--warn)">' + stats.FLAG + '</div><div class="stat-label">Flag</div></div></div><div class="two-col" style="margin-top:18px;"><div class="panel"><div class="panel-head"><h3>Rules</h3></div><div class="panel-body scroll-list">' + (filtered.length ? filtered.map((r, i) => '<div class="rule-card rule-item' + (state.selectedRule && state.selectedRule.id === r.id ? ' selected' : '') + '" data-idx="' + state.rules.indexOf(r) + '"><div class="row"><h4 style="margin:0">' + r.title + '</h4><span class="badge badge-' + (r.action === 'ALLOW' ? 'success' : r.action === 'DENY' ? 'danger' : 'warning') + '">' + r.action + '</span></div><div class="meta" style="margin-top:4px;">' + r.id + '</div></div>').join('') : '<div class="empty">No rules found</div>') + '</div></div><div class="panel">' + (state.selectedRule ? '<div class="panel-head"><h3>' + state.selectedRule.title + '</h3><span class="badge badge-' + (state.selectedRule.action === 'ALLOW' ? 'success' : state.selectedRule.action === 'DENY' ? 'danger' : 'warning') + '">' + state.selectedRule.action + '</span></div><div class="panel-body"><p style="margin-bottom:18px;">' + (state.selectedRule.description || 'No description') + '</p><div class="form-grid" style="margin-bottom:18px;"><div class="field"><label>Rule ID</label><span class="mono">' + state.selectedRule.id + '</span></div><div class="field"><label>Source</label><span>' + (state.selectedRule.source_section || 'N/A') + '</span></div><div class="field"><label>Confidence</label><span>' + ((state.selectedRule.confidence_score || 1) * 100).toFixed(1) + '%</span></div><div class="field"><label>Circular ID</label><span class="mono">' + (state.selectedRule.circular_id || 'N/A') + '</span></div></div><div class="field"><label>Conditions</label></div><pre>' + JSON.stringify(state.selectedRule.conditions || [], null, 2) + '</pre></div>' : '<div class="empty" style="padding:60px;"><p>Select a rule to view details</p></div>') + '</div></div>';
+        }
+
+        function getDomainFields(domain) {
+            if (domain === 'lending') return [
+                { key: 'scenario_type', label: 'Scenario Type', type: 'select', options: ['retail_loan', 'commercial_loan', 'agri_loan'] },
+                { key: 'borrower_type', label: 'Borrower Type', type: 'select', options: ['individual', 'business', 'corporate'] },
+                { key: 'loan_type', label: 'Loan Type', type: 'select', options: ['home', 'personal', 'business', 'agricultural', 'education'] },
+                { key: 'loan_amount', label: 'Loan Amount (INR)', type: 'number' },
+                { key: 'tenure', label: 'Tenure (months)', type: 'number' },
+                { key: 'interest_rate', label: 'Interest Rate (%)', type: 'number' },
+                { key: 'collateral_type', label: 'Collateral Type', type: 'select', options: ['property', 'vehicle', 'fd', 'gold', 'none'] }
+            ];
+            if (domain === 'forex') return [
+                { key: 'scenario_type', label: 'Scenario Type', type: 'select', options: ['outward_remittance', 'import_payment', 'hedging_request'] },
+                { key: 'customer_type', label: 'Customer Type', type: 'select', options: ['individual', 'sme', 'corporate'] },
+                { key: 'resident_status', label: 'Resident Status', type: 'select', options: ['resident', 'non_resident'] },
+                { key: 'amount', label: 'Amount', type: 'number' },
+                { key: 'currency', label: 'Currency', type: 'select', options: ['USD', 'EUR', 'GBP', 'JPY'] },
+                { key: 'fx_purpose_code', label: 'Purpose Code', type: 'text' },
+                { key: 'hedging_flag', label: 'Hedging', type: 'select', options: ['no', 'yes'] },
+                { key: 'underlying_exposure_exists', label: 'Exposure Exists', type: 'select', options: ['no', 'yes'] }
+            ];
+            if (domain === 'trading') return [
+                { key: 'scenario_type', label: 'Scenario Type', type: 'select', options: ['equity_trade', 'derivatives_trade', 'restricted_order'] },
+                { key: 'client_category', label: 'Client Category', type: 'select', options: ['retail', 'hni', 'institutional'] },
+                { key: 'instrument_type', label: 'Instrument', type: 'select', options: ['equity', 'futures', 'options', 'etf'] },
+                { key: 'trade_value', label: 'Trade Value', type: 'number' },
+                { key: 'restricted_list_flag', label: 'Restricted List', type: 'select', options: ['no', 'yes'] },
+                { key: 'insider_flag', label: 'Inside Info Risk', type: 'select', options: ['no', 'yes'] }
+            ];
+            if (domain === 'bonds') return [
+                { key: 'scenario_type', label: 'Scenario Type', type: 'select', options: ['bond_investment', 'private_placement', 'treasury_allocation'] },
+                { key: 'credit_rating', label: 'Credit Rating', type: 'select', options: ['AAA', 'AA', 'A', 'BBB', 'BB'] },
+                { key: 'amount', label: 'Amount', type: 'number' },
+                { key: 'secured_flag', label: 'Secured', type: 'select', options: ['yes', 'no'] },
+                { key: 'private_placement_flag', label: 'Private Placement', type: 'select', options: ['no', 'yes'] },
+                { key: 'investor_category', label: 'Investor Category', type: 'select', options: ['retail', 'hni', 'institutional'] }
+            ];
+            return [];
+        }
+
+        function renderEvaluate() {
+            const d = state.evaluation.domain;
+            const fields = getDomainFields(d);
+            const input = state.evaluation.input;
+            const result = state.evaluationResult;
+            let fieldsHtml = fields.map(f => '<div class="field"><label>' + f.label + '</label>' + (f.type === 'select' ? '<select data-field="' + f.key + '">' + (f.options || []).map(o => '<option value="' + o + '"' + (input[f.key] === o ? ' selected' : '') + '>' + o + '</option>').join('') + '</select>' : '<input type="' + f.type + '" data-field="' + f.key + '" value="' + (input[f.key] || '') + '" placeholder="Enter value...">') + '</div>').join('');
+            let resultHtml = '';
+            if (result) {
+                let matchedHtml = (result.matched_rules || []).map(r => '<div class="rule-card" style="margin-top:8px;"><strong>' + (r.title || r.id) + '</strong> <span class="badge badge-' + (r.action === 'ALLOW' ? 'success' : r.action === 'DENY' ? 'danger' : 'warning') + '">' + r.action + '</span></div>').join('');
+                resultHtml = '<div class="panel" style="margin-top:18px;"><div class="panel-head"><h3>Result</h3></div><div class="panel-body"><div class="result-box"><span class="result-badge ' + result.result + '">' + result.result + '</span><span class="meta">' + new Date().toLocaleString() + '</span></div><div style="margin-top:18px;"><strong>Matched Rules:</strong> ' + (result.matched_rules ? result.matched_rules.length : 0) + matchedHtml + '</div></div></div>';
+            }
+            return '<div class="page-header"><h2>Evaluation Panel</h2><p>Explore lending and forex scenarios against regulatory rules</p></div>' + (state.error ? '<div class="error">' + state.error + '</div>' : '') + '<div class="panel"><div class="panel-head"><h3>Simulation Domain</h3><p>Choose a domain to configure the evaluation</p></div><div class="panel-body"><div class="card-grid"><div class="domain-card' + (d === 'lending' ? ' active' : '') + '" data-domain="lending"><h4>Lending</h4><p class="meta">Retail and commercial loan scenarios</p></div><div class="domain-card' + (d === 'forex' ? ' active' : '') + '" data-domain="forex"><h4>Forex</h4><p class="meta">Cross-border currency scenarios</p></div><div class="domain-card' + (d === 'trading' ? ' active' : '') + '" data-domain="trading"><h4>Trading</h4><p class="meta">Securities trading scenarios</p></div><div class="domain-card' + (d === 'bonds' ? ' active' : '') + '" data-domain="bonds"><h4>Bonds</h4><p class="meta">Debt market scenarios</p></div></div></div></div><div class="panel" style="margin-top:18px;"><div class="panel-head"><h3>Input Parameters</h3></div><form id="eval-form" class="panel-body"><div class="form-grid">' + fieldsHtml + '</div><div class="actions"><button type="reset" class="btn secondary">Clear</button><button type="submit" class="btn primary">' + (state.loading ? 'Evaluating...' : 'Evaluate') + '</button></div></form></div>' + resultHtml;
+        }
+
+        function renderTraceability() {
+            return '<div class="page-header"><h2>Traceability View</h2><p>Understand the origin and impact of each regulatory rule</p></div><div class="two-col"><div class="panel"><div class="panel-head"><h3>Rules</h3></div><div class="panel-body scroll-list">' + (state.rules.length ? state.rules.map((r, i) => '<div class="rule-card rule-item' + (state.selectedRule && state.selectedRule.id === r.id ? ' selected' : '') + '" data-idx="' + i + '"><div class="row"><h4 style="margin:0">' + r.title + '</h4><span class="badge badge-' + (r.action === 'ALLOW' ? 'success' : r.action === 'DENY' ? 'danger' : 'warning') + '">' + r.action + '</span></div><div class="meta" style="margin-top:4px;">' + r.id + '</div></div>').join('') : '<div class="empty">No rules found</div>') + '</div></div><div class="panel">' + (state.selectedRule ? '<div class="panel-head"><h3>' + state.selectedRule.title + '</h3></div><div class="panel-body"><div class="form-grid" style="margin-bottom:18px;"><div class="field"><label>Rule ID</label><span class="mono">' + state.selectedRule.id + '</span></div><div class="field"><label>Action</label><span class="badge badge-' + (state.selectedRule.action === 'ALLOW' ? 'success' : state.selectedRule.action === 'DENY' ? 'danger' : 'warning') + '">' + state.selectedRule.action + '</span></div><div class="field"><label>Source</label><span>' + (state.selectedRule.source_section || 'N/A') + '</span></div><div class="field"><label>Confidence</label><span>' + ((state.selectedRule.confidence_score || 1) * 100).toFixed(1) + '%</span></div></div><div class="info-box"><strong>Rule Origin:</strong> Extracted from ' + (state.selectedRule.circular_id || 'unknown circular') + '</div><div class="field"><label>Extracted Rule JSON</label></div><pre>' + JSON.stringify(state.selectedRule, null, 2) + '</pre></div>' : '<div class="empty" style="padding:60px;"><p>Select a rule to view traceability information</p></div>') + '</div></div>';
+        }
+    </script>
+</body>
+</html>

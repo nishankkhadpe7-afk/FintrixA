@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S92 - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-green: #1a7c5c;
+            --dark-green: #0d3d2e;
+            --light-green: #2e9d75;
+            --accent-green: #1a7c5c;
+            --text-light: #1a1a1a;
+            --text-dark: #333333;
+            --text-muted: #666666;
+            --bg-light: #ffffff;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.12);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(26, 124, 92, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: #f0f4f3;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .orb-bg {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+            background: linear-gradient(135deg, #e8f0ed 0%, #f5f7f6 50%, #e5ebe8 100%);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.25;
+            will-change: transform;
+        }
+
+        .orb1 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #4ecdc4, #2e9d75);
+            top: -10%;
+            left: 10%;
+        }
+
+        .orb2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #1a7c5c, #0d3d2e);
+            bottom: -5%;
+            right: 10%;
+        }
+
+        .orb3 {
+            width: 450px;
+            height: 450px;
+            background: linear-gradient(135deg, #2e9d75, #4ecdc4);
+            top: 40%;
+            left: 50%;
+        }
+
+        .orb4 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #0d3d2e, #1a7c5c);
+            top: 20%;
+            right: 30%;
+        }
+
+        .glass-layer {
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(60px) saturate(150%);
+            background: rgba(255, 255, 255, 0.5);
+            min-height: 100vh;
+        }
+
+        nav {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            padding: 1.2rem 4rem;
+            box-shadow: 0 1px 0 rgba(26, 124, 92, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            letter-spacing: 1px;
+        }
+
+        .logo i {
+            font-size: 1.6rem;
+            color: var(--primary-green);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-green);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-green);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 4rem;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .dashboard-title {
+            font-size: 3rem;
+            color: var(--dark-green);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .dashboard-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-btn {
+            background: rgba(26, 124, 92, 0.08);
+            color: var(--primary-green);
+            border: 1px solid rgba(26, 124, 92, 0.15);
+            padding: 1rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .dashboard-btn:hover {
+            background: rgba(26, 124, 92, 0.12);
+            border-color: rgba(26, 124, 92, 0.25);
+        }
+
+        .dashboard-btn.active {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 20px rgba(26, 124, 92, 0.25);
+        }
+
+        .dashboard-sections {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .dashboard-section {
+            background: var(--glass-bg);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .dashboard-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(26, 124, 92, 0.04), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .dashboard-section:hover::before {
+            opacity: 1;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--dark-green);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .section-action {
+            color: var(--primary-green);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .section-action:hover {
+            opacity: 0.8;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chart-container {
+            background: rgba(26, 124, 92, 0.03);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: 350px;
+            border: 1px solid rgba(26, 124, 92, 0.08);
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            color: var(--dark-green);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .tax-slabs-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .tax-slab-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .tax-slab-label {
+            width: 100px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .tax-slab-bar-container {
+            flex-grow: 1;
+            height: 35px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .tax-slab-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-green), var(--light-green));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 0 20px rgba(26, 124, 92, 0.15);
+        }
+
+        .rbi-placeholder {
+            padding: 4rem 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 1;
+        }
+
+        .rbi-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            nav { padding: 1rem 2rem; }
+            .dashboard-container { padding: 2rem; }
+            .charts-container { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .dashboard-title { font-size: 2rem; }
+            .dashboard-btn { width: 100%; justify-content: center; }
+            .tax-slab-label { width: 60px; font-size: 0.8rem; }
+        }
+
+        .kpi-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.kpi-card {
+    background: rgba(26,124,92,0.05);
+    border: 1px solid rgba(26,124,92,0.1);
+    padding: 1.5rem;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.kpi-card h3 {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-card p {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a7c5c;
+}
+    </style>
+</head>
+<body>
+    <div class="orb-bg">
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+        <div class="orb orb4"></div>
+    </div>
+
+    <div class="glass-layer">
+        <nav>
+            <a href="#" class="logo">
+                <i class="fas fa-shield-alt"></i>
+                S - 92
+            </a>
+            <ul class="nav-links">
+                <li><a href="1.html">Home</a></li>
+                <li><a href="3.html">Learn</a></li>
+                <li><a href="4.html">News</a></li>
+                <li><a href="2.html">Dashboard</a></li>
+                <li><a href="rules.html">Rules</a></li>
+                <li><a href="evaluate.html">Evaluate</a></li>
+                <li><a href="#" id="authBtn">Login</a></li>
+            </ul>
+        </nav>
+
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Dashboard</h1>
+            </div>
+
+            <div class="kpi-container" style="grid-template-columns: repeat(5, 1fr);">
+    <div class="kpi-card">
+        <h3>Total Queries</h3>
+        <p id="kpi-queries">0</p>
+    </div>
+    <div class="kpi-card">
+        <h3>Risk Level</h3>
+        <p id="kpi-risk">Low</p>
+    </div>
+    <div class="kpi-card">
+        <h3>Compliance Rate</h3>
+        <p id="kpi-compliance">0%</p>
+    </div>
+    <div class="kpi-card">
+        <h3>Active Rules</h3>
+        <p id="kpi-rules" style="color:#0d3d2e;">0</p>
+    </div>
+    <div class="kpi-card">
+        <h3>Domains Covered</h3>
+        <p id="kpi-domains" style="color:#2e9d75;">0</p>
+    </div>
+</div>
+
+            <div class="dashboard-buttons">
+                <button class="dashboard-btn active" id="budget-btn">
+                    <i class="fas fa-calculator"></i>
+                    Budget 2026
+                </button>
+                <button class="dashboard-btn" id="tax-btn">
+                    <i class="fas fa-receipt"></i>
+                    Indian Tax Slabs
+                </button>
+                <button class="dashboard-btn" id="rbi-btn">
+                    <i class="fas fa-university"></i>
+                    RBI Guidelines
+                </button>
+            </div>
+
+            <div class="dashboard-sections">
+                <div class="dashboard-section" id="budget-section">
+                    <div class="section-header">
+                        <h2 class="section-title">BUDGET 2026</h2>
+                        <a href="#" class="section-action">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </a>
+                    </div>
+                    
+                    <div class="charts-container">
+                        <div class="chart-container">
+                            <h3 class="chart-title">Budget Allocation</h3>
+                            <canvas id="budgetPieChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="chart-title">Monthly Expenses</h3>
+                            <canvas id="expensesBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-section" id="tax-section" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">INDIAN TAX SLABS</h2>
+                        <a href="#" class="section-action">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </a>
+                    </div>
+                    
+                    <div id="tax-container"></div>
+                </div>
+
+                <div class="dashboard-section" id="rbi-section" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">RBI GUIDELINES</h2>
+                        <a href="#" class="section-action">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </a>
+                    </div>
+                    
+                    <div class="rbi-placeholder">
+                        <i class="fas fa-university"></i>
+                        <ul style="text-align:left; max-width:600px; margin:auto;">
+    <li>Zero liability if bank fault</li>
+    <li>Zero liability if reported within 3 days</li>
+    <li>Limited liability if delay (4–7 days)</li>
+    <li>Full liability if customer negligence</li>
+    <li>Bank bears loss after reporting</li>
+</ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const budgetBtn = document.getElementById('budget-btn');
+        const taxBtn = document.getElementById('tax-btn');
+        const rbiBtn = document.getElementById('rbi-btn');
+        
+        const budgetSection = document.getElementById('budget-section');
+        const taxSection = document.getElementById('tax-section');
+        const rbiSection = document.getElementById('rbi-section');
+        
+        budgetBtn.addEventListener('click', function() {
+            budgetBtn.classList.add('active');
+            taxBtn.classList.remove('active');
+            rbiBtn.classList.remove('active');
+            
+            budgetSection.style.display = 'block';
+            taxSection.style.display = 'none';
+            rbiSection.style.display = 'none';
+        });
+        
+      taxBtn.addEventListener('click', function() {
+    budgetBtn.classList.remove('active');
+    taxBtn.classList.add('active');
+    rbiBtn.classList.remove('active');
+
+    budgetSection.style.display = 'none';
+    taxSection.style.display = 'block';
+    rbiSection.style.display = 'none';
+
+    fetch("http://127.0.0.1:8000/api/tax")
+    .then(res => res.json())
+    .then(data => {
+        const container = document.getElementById("tax-container");
+        container.innerHTML = "";
+
+        data.forEach(item => {
+            container.innerHTML += `
+            <div class="tax-slab-item">
+                <div class="tax-slab-label">${item.range}</div>
+                <div class="tax-slab-bar-container">
+                    <div class="tax-slab-bar" style="width:${item.rate}%">
+                        ${item.rate}%
+                    </div>
+                </div>
+            </div>
+            `;
+        });
+    });
+});
+        
+        Chart.defaults.color = '#333333';
+        Chart.defaults.borderColor = 'rgba(0, 0, 0, 0.05)';
+
+        const budgetCtx = document.getElementById('budgetPieChart').getContext('2d');
+        const budgetPieChart = new Chart(budgetCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Infrastructure', 'Healthcare', 'Education', 'Defense', 'Others'],
+                datasets: [{
+                    data: [30, 25, 20, 15, 10],
+                    backgroundColor: [
+                        '#1a7c5c',
+                        '#2e9d75',
+                        '#4ecdc4',
+                        '#6dd5d1',
+                        '#8fe3e0'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+        
+        const expensesCtx = document.getElementById('expensesBarChart').getContext('2d');
+        const expensesBarChart = new Chart(expensesCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Expenses (in Lakhs)',
+                    data: [65, 59, 80, 81, 56, 55],
+                    backgroundColor: 'rgba(26, 124, 92, 0.4)',
+                    borderColor: '#1a7c5c',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+fetch("http://127.0.0.1:8000/api/budget")
+.then(res => res.json())
+.then(data => {
+   
+    budgetPieChart.data.labels = data.labels;
+    budgetPieChart.data.datasets[0].data = data.allocation;
+    budgetPieChart.update();
+
+    
+    expensesBarChart.data.labels = ["Jan","Feb","Mar","Apr","May","Jun"]; 
+    expensesBarChart.data.datasets[0].data = data.monthly;
+    expensesBarChart.update();
+})
+.catch(() => {
+    console.log("Using default chart data");
+});
+
+        const orbs = document.querySelectorAll('.orb');
+
+        window.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            orbs.forEach((orb) => {
+                const rect = orb.getBoundingClientRect();
+                const orbCenterX = rect.left + rect.width / 2;
+                const orbCenterY = rect.top + rect.height / 2;
+
+                const deltaX = mouseX - orbCenterX;
+                const deltaY = mouseY - orbCenterY;
+                
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                const maxDistance = 600;
+
+                if (distance < maxDistance) {
+                    const strength = (maxDistance - distance) / maxDistance;
+                    const moveX = -deltaX * strength * 0.3;
+                    const moveY = -deltaY * strength * 0.3;
+                    const rotate = strength * 15 * (deltaX > 0 ? 1 : -1);
+
+                    orb.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotate}deg)`;
+                } else {
+                    orb.style.transform = `translate(0px, 0px) rotate(0deg)`;
+                }
+            });
+        });
+
+        document.querySelectorAll('.dashboard-section').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+const fallbackData = {
+    queries: 128,
+    risk: "Medium",
+    compliance: 82,
+    active_rules: 0,
+    domains: {}
+};
+
+function updateDashboard(data) {
+    document.getElementById("kpi-queries").innerText = data.queries;
+    document.getElementById("kpi-risk").innerText = data.risk;
+    document.getElementById("kpi-compliance").innerText = data.compliance + "%";
+    document.getElementById("kpi-rules").innerText = data.active_rules || 0;
+    document.getElementById("kpi-domains").innerText = Object.keys(data.domains || {}).length;
+}
+
+function updateAuthUI() {
+    const token = localStorage.getItem("token");
+    const authBtn = document.getElementById("authBtn");
+    if (!authBtn) return;
+    if (token) {
+        authBtn.textContent = "Log Out";
+        authBtn.onclick = (event) => {
+            event.preventDefault();
+            localStorage.removeItem("token");
+            window.location.href = "1.html";
+        };
+    } else {
+        authBtn.textContent = "Login";
+        authBtn.onclick = (event) => {
+            event.preventDefault();
+            window.location.href = "login.html";
+        };
+    }
+}
+
+updateAuthUI();
+
+fetch("http://127.0.0.1:8000/api/dashboard")
+.then(res => res.json())
+.then(data => {
+    updateDashboard(data);
+})
+.catch(() => {
+    console.log("Using fallback data");
+    updateDashboard(fallbackData);
+});
+    </script>
+</body>
+</html>

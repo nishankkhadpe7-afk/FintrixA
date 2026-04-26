@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S92 - What If Simulation</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+    --primary-green: #1a7c5c;
+    --dark-green: #0d3d2e;
+    --light-green: #2e9d75;
+    --accent-green: #1a7c5c;
+    --text-light: #1a1a1a;
+    --text-dark: #333333;
+    --text-muted: #666666;
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(26, 124, 92, 0.12);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f0f4f3;
+    color: var(--text-dark);
+    overflow-x: hidden;
+}
+
+.orb-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(135deg, #e8f0ed 0%, #f5f7f6 50%, #e5ebe8 100%);
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.25;
+}
+
+.orb1 {
+    width: 600px;
+    height: 600px;
+    background: linear-gradient(135deg, #4ecdc4, #2e9d75);
+    top: -10%;
+    left: 10%;
+}
+
+.orb2 {
+    width: 500px;
+    height: 500px;
+    background: linear-gradient(135deg, #1a7c5c, #0d3d2e);
+    bottom: -5%;
+    right: 10%;
+}
+
+.orb3 {
+    width: 400px;
+    height: 400px;
+    background: linear-gradient(135deg, #2e9d75, #4ecdc4);
+    top: 40%;
+    left: 50%;
+}
+
+.glass-layer {
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(60px);
+    min-height: 100vh;
+}
+
+nav {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    padding: 1.2rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 0 rgba(26, 124, 92, 0.1);
+}
+
+.logo {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--dark-green);
+    text-decoration: none;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.logo i {
+    color: var(--primary-green);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-links a {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--primary-green);
+}
+
+.ai-container {
+    max-width: 900px;
+    margin: 60px auto;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.ai-title {
+    font-size: 2rem;
+    color: var(--dark-green);
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.chat-box {
+    height: 420px;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.ai-message {
+    margin-bottom: 15px;
+    color: var(--text-dark);
+    background: rgba(26, 124, 92, 0.05);
+    padding: 12px 16px;
+    border-radius: 12px;
+    border-left: 3px solid var(--primary-green);
+}
+
+.ai-message b {
+    color: var(--dark-green);
+}
+
+.user-message {
+    margin-bottom: 15px;
+    color: var(--primary-green);
+    text-align: right;
+    font-weight: 500;
+}
+
+.chat-input {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    outline: none;
+    background: #fff;
+    color: var(--text-dark);
+    font-family: 'Inter', sans-serif;
+}
+
+.chat-input input::placeholder {
+    color: #999;
+}
+
+.chat-input button {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(26, 124, 92, 0.2);
+}
+
+.chat-input button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26, 124, 92, 0.3);
+}
+
+.chat-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.chat-box ul {
+    margin-top: 8px;
+    padding-left: 20px;
+}
+
+.chat-box li {
+    margin-bottom: 4px;
+    color: var(--text-dark);
+}
+</style>
+</head>
+
+<body>
+
+<div class="orb-bg">
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+</div>
+
+<div class="glass-layer">
+<nav>
+<a href="1.html" class="logo">
+<i class="fas fa-shield-alt"></i>
+S-92
+</a>
+
+<ul class="nav-links">
+<li><a href="1.html">Home</a></li>
+<li><a href="3.html">Learn</a></li>
+<li><a href="4.html">News</a></li>
+<li><a href="2.html">Dashboard</a></li>
+<li><a href="rules.html">Rules</a></li>
+<li><a href="evaluate.html">Evaluate</a></li>
+<li><a href="#" id="authBtn">Login</a></li>
+</ul>
+</nav>
+
+<div style="display:flex;">
+
+    <div style="width:260px; background:#ffffffcc; padding:20px; border-right:1px solid #ddd;">
+
+        <button onclick="createNewChat()" style="width:100%; padding:10px; margin-bottom:20px; background:#1a7c5c; color:white; border:none; border-radius:8px;">
+        + New Chat
+        </button>
+
+        <div id="sessionList"></div>
+
+    </div>
+
+   
+    <div style="flex:1;">
+        <div class="ai-container">
+
+            <h2 class="ai-title">What-If Simulation Engine</h2>
+
+            <div id="chatBox" class="chat-box">
+                <div class="ai-message">
+                Describe a financial scenario and I will analyze compliance, risks, and outcomes.
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <input id="userInput" placeholder="Example: I transfer ₹10 lakh abroad">
+                <button onclick="sendScenario()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</div>
+
+<script>
+let sessionTitles = JSON.parse(localStorage.getItem("sessionTitles")) || {};
+let currentSessionId = null;
+let sessions = [];
+
+async function initSession(){
+
+    const token = localStorage.getItem("token");
+
+    if(!token){
+        window.location.href = "login.html";
+        return;
+    }
+
+    try{
+        const res = await fetch("http://127.0.0.1:8000/api/session/list", {
+            headers:{
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await res.json();
+
+        sessions = data.map(s => s.id);
+
+        if(sessions.length > 0){
+            currentSessionId = sessions[0];
+            renderSessions();
+            await loadHistory();
+        }else{
+            await createNewChat();
+        }
+
+    }catch(err){
+        console.error("Init error:", err);
+        alert("Backend not reachable");
+    }
+}
+
+async function loadHistory(){
+
+    const token = localStorage.getItem("token");
+
+    if(!token){
+        alert("Session expired. Please login again.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    if(!currentSessionId) return;
+
+    const res = await fetch(`http://127.0.0.1:8000/api/session/history/${currentSessionId}`,{
+        headers:{
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    if(res.status === 401){
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        window.location.href = "login.html";
+        return;
+    }
+
+    const data = await res.json();
+
+    if(!Array.isArray(data)){
+        console.error("History error:", data);
+        return;
+    }
+
+    const chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML = "";
+
+    data.forEach(msg => {
+        if(msg.role === "user"){
+            chatBox.innerHTML += `<div class="user-message">${msg.content}</div>`;
+        }else{
+
+            let parsed;
+
+            try{
+                parsed = JSON.parse(msg.content);
+
+                if(typeof parsed === "string"){
+                    parsed = JSON.parse(parsed);
+                }
+
+                chatBox.innerHTML += renderAI(parsed);
+
+            }catch{
+                chatBox.innerHTML += `<div class="ai-message">${msg.content}</div>`;
+            }
+
+        }
+    });
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+async function sendScenario(){
+    if(!currentSessionId){
+    alert("Session not ready");
+    return;
+}
+    const token = localStorage.getItem("token");
+    if(!token){
+        alert("Session expired. Please login again.");
+        window.location.href = "login.html";
+        return;
+    }
+    const input = document.getElementById("userInput");
+    const question = input.value;
+
+if(!sessionTitles[currentSessionId]){
+
+    try{
+        const res = await fetch("http://127.0.0.1:8000/api/session/title",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                session_id: currentSessionId,
+                message: question
+            })
+        });
+
+        const data = await res.json();
+
+        sessionTitles[currentSessionId] = data.title || question.slice(0,30);
+
+    }catch(err){
+        console.error("Title error:", err);
+        sessionTitles[currentSessionId] = question.slice(0,30);
+    }
+
+    localStorage.setItem("sessionTitles", JSON.stringify(sessionTitles));
+    renderSessions();
+}
+
+    if(!question) return;
+
+    const chatBox = document.getElementById("chatBox");
+
+    chatBox.innerHTML += `<div class="user-message">${question}</div>`;
+
+    input.value = "";
+
+   const response = await fetch("http://127.0.0.1:8000/api/session/message",{
+    method:"POST",
+    headers:{
+        "Content-Type":"application/json",
+        "Authorization": `Bearer ${token}`
+    },
+    body:JSON.stringify({
+        session_id: currentSessionId,
+        message: question
+    })
+});
+
+if(response.status === 401){
+    alert("Session expired. Please login again.");
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+    return;
+}
+
+if(!response.ok){
+    console.error("Message error:", await response.text());
+    alert("Request failed. Please login again.");
+    return;
+}
+
+const data = await response.json();
+
+    chatBox.innerHTML += renderAI(data);
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function renderAI(data){
+
+    const next = data.what_could_happen_next || {};
+    const actions = data.what_should_you_do || {};
+
+    return `
+    <div class="ai-message">
+
+    <b>Analysis</b><br>
+    ${data.analysis || data.scenario_analysis || "No analysis"}
+
+    <br><br>
+
+    <b>Compliance Status</b><br>
+    ${data.compliance_status || "N/A"}
+
+    <br><br>
+
+   <b>Risk Level</b><br>
+<span style="color:${data.risk_color || 'black'}; font-weight:600;">
+${data.risk_level || "N/A"}
+</span>
+
+&nbsp;&nbsp;
+
+<span style="color:#666; font-size:14px;">
+Confidence: ${(data.confidence*100 || 0).toFixed(0)}%
+</span>
+
+${data.rule_override ? `
+<br><span style="color:#dc3545; font-size:12px; font-weight:600;">
+⚠ Rule Override: ${data.rule_override_reason || 'Critical compliance rule triggered'}
+</span>` : ''}
+
+    <br><br>
+
+    <b>Reason</b><br>
+    ${data.reason || "N/A"}
+
+    <br><br>
+
+    <b>What could happen next</b>
+
+    <br><b>Immediate</b>
+    <ul>
+        ${(next.immediate || []).map(i => `<li>${i}</li>`).join("")}
+    </ul>
+
+    <b>Regulatory Impact</b>
+    <ul>
+        ${(next.regulatory || []).map(i => `<li>${i}</li>`).join("")}
+    </ul>
+
+    <b>Tax Impact</b>
+    <ul>
+        ${(next.tax || []).map(i => `<li>${i}</li>`).join("")}
+    </ul>
+
+    <b>Worst Case</b>
+    <ul>
+        ${(next.worst_case || []).map(i => `<li>${i}</li>`).join("")}
+    </ul>
+
+    <br>
+
+    <b>What should you do</b>
+
+    <br><b>Immediate Actions</b>
+    <ul>
+        ${(actions.immediate_actions || []).map(i => `<li>${i}</li>`).join("")}
+    </ul>
+
+    <b>Compliance Steps</b>
+    <ul>
+        ${(actions.compliance_actions || []).map(i => `<li>${i}</li>`).join("")}
+    </ul>
+
+    <b>Risk Mitigation</b>
+    <ul>
+        ${(actions.risk_mitigation || []).map(i => `<li>${i}</li>`).join("")}
+    </ul>
+
+    <b>Prevention</b>
+    <ul>
+        ${(actions.preventive_measures || []).map(i => `<li>${i}</li>`).join("")}
+    </ul>
+
+    <br>
+
+    <b>Rule Summary</b><br>
+    ${data.rule_summary || "No rule summary available."}
+
+    ${(data.rule_matches && data.rule_matches.length > 0) ? `
+    <br>
+    <b style="color:#1a7c5c;">⚖ Fintrix Rule Engine Matches</b>
+    <span style="font-size:12px; color:#666;">(${data.rules_checked || 0} rules evaluated)</span>
+    <div style="margin-top:8px;">
+    ${data.rule_matches.map(r => `
+        <div style="background:rgba(26,124,92,0.06); border:1px solid rgba(26,124,92,0.15); border-radius:8px; padding:10px 14px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:600; color:#0d3d2e; font-size:13px;">${r.rule_id} — ${r.title}</span>
+                <span style="background:${r.severity==='critical'?'#dc3545':r.severity==='high'?'#fd7e14':r.severity==='medium'?'#ffc107':'#28a745'}; color:${r.severity==='medium'||r.severity==='low'?'#333':'white'}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; text-transform:uppercase;">${r.severity}</span>
+            </div>
+            <div style="font-size:12px; color:#666; margin-top:4px;">${r.description || ''}</div>
+            <div style="margin-top:4px;">
+                <span style="font-size:11px; background:rgba(26,124,92,0.1); padding:2px 6px; border-radius:3px; color:#1a7c5c;">${r.action}</span>
+                <span style="font-size:11px; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:3px; color:#666; margin-left:4px;">${r.regulator}</span>
+            </div>
+        </div>
+    `).join("")}
+    </div>
+    ` : `
+    <div style="font-size:12px; color:#999; margin-top:8px;">
+        <i>✓ ${data.rules_checked || 0} compliance rules checked — no violations detected</i>
+    </div>
+    `}
+
+    </div>
+    `;
+}
+
+async function createNewChat(){
+
+    const token = localStorage.getItem("token");
+
+        if(!token){
+    alert("Session expired. Please login again.");
+    window.location.href = "login.html";
+    return;
+            }
+
+    const res = await fetch("http://127.0.0.1:8000/api/session/create",{
+        method:"POST",
+        headers:{
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+
+
+        if(res.status === 401){
+            alert("Session expired. Please login again.");
+            localStorage.removeItem("token");
+            window.location.href = "login.html";
+            return;
+        }
+
+    const data = await res.json();
+
+    currentSessionId = data.session_id;
+
+    sessions.unshift(currentSessionId);
+
+    document.getElementById("chatBox").innerHTML = `
+        <div class="ai-message">
+        Describe a financial scenario and I will analyze compliance, risks, and outcomes.
+        </div>
+    `;
+
+    renderSessions();
+}
+
+function renderSessions(){
+
+    const list = document.getElementById("sessionList");
+
+    list.innerHTML = "";
+
+    sessions.forEach(id => {
+        list.innerHTML += `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:8px; border-radius:8px; background:${id===currentSessionId?'#e8f0ed':'transparent'}">
+
+            <span onclick="switchSession(${id})" style="cursor:pointer; flex:1;">
+                ${sessionTitles[id] || `Chat ${id}`}
+            </span>
+
+            <i class="fas fa-trash" style="cursor:pointer; color:#999; margin-left:10px;" onclick="deleteSession(${id})"></i>
+
+        </div>
+        `;
+    });
+}
+
+function switchSession(id){
+    currentSessionId = id;
+    document.getElementById("chatBox").innerHTML = "";
+    renderSessions();
+    loadHistory().catch(err=>{
+        console.error("Switch error:", err);
+    });
+}
+
+async function deleteSession(id){
+
+    const token = localStorage.getItem("token");
+
+    if(!token){
+        alert("Login again");
+        return;
+    }
+
+    const res = await fetch(`http://127.0.0.1:8000/api/session/delete/${id}`, {
+        method: "DELETE",
+        headers:{
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    if(!res.ok){
+        alert("Delete failed");
+        return;
+    }
+
+    sessions = sessions.filter(s => s !== id);
+    delete sessionTitles[id];
+
+    if(currentSessionId === id){
+        currentSessionId = sessions[0] || null;
+        document.getElementById("chatBox").innerHTML = "";
+
+        if(currentSessionId){
+            await loadHistory();
+        }
+    }
+
+    renderSessions();
+}
+
+function updateAuthUI(){
+    const token = localStorage.getItem("token");
+    const authBtn = document.getElementById("authBtn");
+    if(!authBtn) return;
+
+    if(token){
+        authBtn.textContent = "Log Out";
+        authBtn.onclick = (event) => {
+            event.preventDefault();
+            localStorage.removeItem("token");
+            window.location.href = "1.html";
+        };
+    }else{
+        authBtn.textContent = "Login";
+        authBtn.onclick = (event) => {
+            event.preventDefault();
+            window.location.href = "login.html";
+        };
+    }
+}
+
+updateAuthUI();
+window.onload = initSession;
+</script>
+</body>
+</html>

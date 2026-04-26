@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article - S92</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-green: #1a7c5c;
+            --dark-green: #0d3d2e;
+            --light-green: #2e9d75;
+            --accent-green: #1a7c5c;
+            --text-light: #1a1a1a;
+            --text-dark: #333333;
+            --text-muted: #666666;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(26, 124, 92, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f4f3;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .orb-bg {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+            background: linear-gradient(135deg, #e8f0ed 0%, #f5f7f6 50%, #e5ebe8 100%);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.25;
+            will-change: transform;
+        }
+
+        .orb1 {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #4ecdc4, #2e9d75);
+            top: -10%;
+            left: 10%;
+        }
+
+        .orb2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #1a7c5c, #0d3d2e);
+            bottom: -5%;
+            right: 10%;
+        }
+
+        .orb3 {
+            width: 450px;
+            height: 450px;
+            background: linear-gradient(135deg, #2e9d75, #4ecdc4);
+            top: 40%;
+            left: 50%;
+        }
+
+        .glass-layer {
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(60px) saturate(150%);
+            background: rgba(255, 255, 255, 0.5);
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        nav {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            padding: 1.2rem 4rem;
+            box-shadow: 0 1px 0 rgba(26, 124, 92, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            letter-spacing: 1px;
+        }
+
+        .logo i {
+            font-size: 1.6rem;
+            color: var(--primary-green);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-green);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-green);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .article-container {
+            max-width: 900px;
+            margin: 60px auto;
+            background: var(--glass-bg);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--glass-border);
+        }
+
+        .article-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .article-title {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: var(--dark-green);
+            font-weight: 700;
+        }
+
+        .article-meta {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .article-content {
+            line-height: 1.7;
+            font-size: 18px;
+            color: var(--text-dark);
+        }
+
+        .article-content a {
+            color: var(--primary-green);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .article-content a:hover {
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-green);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            gap: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .article-container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .article-title {
+                font-size: 24px;
+            }
+
+            .article-image {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="orb-bg">
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+    </div>
+
+    <div class="glass-layer">
+
+        <nav>
+            <a href="1.html" class="logo">
+                <i class="fas fa-shield-alt"></i>
+                S - 92
+            </a>
+            <ul class="nav-links">
+                <li><a href="1.html">Home</a></li>
+                <li><a href="3.html">Learn</a></li>
+                <li><a href="4.html">News</a></li>
+                <li><a href="2.html">Dashboard</a></li>
+                <li><a href="rules.html">Rules</a></li>
+            </ul>
+        </nav>
+
+        <div class="article-container">
+            <a href="4.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to News
+            </a>
+
+            <img id="articleImage" class="article-image">
+            <h1 id="articleTitle" class="article-title"></h1>
+            <div id="articleMeta" class="article-meta"></div>
+            <div id="articleContent" class="article-content"></div>
+        </div>
+
+    </div>
+
+    <script>
+        function getArticleId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("id");
+        }
+
+        async function loadArticle() {
+            const id = getArticleId();
+            if (!id) return;
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/news/${id}`);
+                const article = await response.json();
+
+                document.getElementById("articleImage").src =
+                    article.image_url || "https://via.placeholder.com/900x400?text=S92+News";
+
+                document.getElementById("articleTitle").innerText =
+                    article.title || "No Title";
+
+                document.getElementById("articleMeta").innerText =
+                    article.source + " • " + new Date(article.published_at).toLocaleString();
+
+                document.getElementById("articleContent").innerHTML =
+                    `<p>${article.description || ""}</p>
+             <p>${article.content || ""}</p>
+             <br>
+             <a href="${article.url}" target="_blank">
+                Read Full Article on ${article.source}
+             </a>`;
+            } catch (error) {
+                console.error("Error loading article:", error);
+                document.getElementById("articleTitle").innerText = "Error Loading Article";
+                document.getElementById("articleContent").innerText = "Could not load the requested article.";
+            }
+        }
+
+        loadArticle();
+    </script>
+</body>
+
+</html>

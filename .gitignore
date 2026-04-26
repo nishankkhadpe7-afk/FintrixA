@@ -1,0 +1,49 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor and IDE
+.vscode/
+.idea/
+
+# Global environment files
+.env
+.env.*
+!.env.example
+!.env.local.example
+!.env.production.example
+
+# Logs and runtime artifacts
+*.log
+*.out.log
+*.err.log
+
+# Python caches and environments
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node dependencies and build outputs
+**/node_modules/
+**/.next/
+**/dist/
+**/build/
+
+# Project-specific ignores
+Frontend/fintrix-web/.env.local
+Backend/fintrix-api/backend/.env
+Backend/fintrix-api/logs/
+
+# Database files
+Database/*.db
+Database/*.sqlite
+Database/*.sqlite3
+Backend/fintrix-api/*.db
+Backend/fintrix-api/*.sqlite
+Backend/fintrix-api/*.sqlite3

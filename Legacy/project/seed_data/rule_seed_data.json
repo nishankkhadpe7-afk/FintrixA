@@ -1,0 +1,183 @@
+{
+  "rules": [
+    {
+      "key": "lending_personal_high_amount",
+      "domain": "lending",
+      "description": "Personal loans above the configured threshold should be denied.",
+      "rule": {
+        "type": "prohibition",
+        "action": "DENY",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "lending" },
+          { "field": "loan_type", "operator": "==", "value": "personal" },
+          { "field": "loan_amount", "operator": ">", "value": 2000000 }
+        ]
+      }
+    },
+    {
+      "key": "lending_agri_short_tenor",
+      "domain": "lending",
+      "description": "Agricultural loans with very short tenor should be denied.",
+      "rule": {
+        "type": "prohibition",
+        "action": "DENY",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "lending" },
+          { "field": "loan_type", "operator": "==", "value": "agricultural" },
+          { "field": "tenure", "operator": "<", "value": 12 }
+        ]
+      }
+    },
+    {
+      "key": "lending_business_high_rate",
+      "domain": "lending",
+      "description": "Business loans priced above the cap should be denied.",
+      "rule": {
+        "type": "prohibition",
+        "action": "DENY",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "lending" },
+          { "field": "loan_type", "operator": "==", "value": "business" },
+          { "field": "interest_rate", "operator": ">", "value": 18 }
+        ]
+      }
+    },
+    {
+      "key": "forex_missing_purpose_code",
+      "domain": "forex",
+      "description": "Outward remittances without a purpose code should be flagged.",
+      "rule": {
+        "type": "conditional",
+        "action": "FLAG",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "forex" },
+          { "field": "scenario_type", "operator": "==", "value": "outward_remittance" },
+          { "field": "fx_purpose_code", "operator": "==", "value": "" }
+        ]
+      }
+    },
+    {
+      "key": "forex_hedging_without_exposure",
+      "domain": "forex",
+      "description": "Hedging requests need underlying exposure.",
+      "rule": {
+        "type": "prohibition",
+        "action": "DENY",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "forex" },
+          { "field": "hedging_flag", "operator": "==", "value": "yes" },
+          { "field": "underlying_exposure_exists", "operator": "==", "value": "no" }
+        ]
+      }
+    },
+    {
+      "key": "forex_large_capital_remittance_review",
+      "domain": "forex",
+      "description": "Large capital-account remittances should be reviewed.",
+      "rule": {
+        "type": "conditional",
+        "action": "FLAG",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "forex" },
+          { "field": "remittance_type", "operator": "==", "value": "capital_account" },
+          { "field": "amount", "operator": ">", "value": 250000 }
+        ]
+      }
+    },
+    {
+      "key": "trading_restricted_security",
+      "domain": "trading",
+      "description": "Restricted list securities should be blocked.",
+      "rule": {
+        "type": "prohibition",
+        "action": "DENY",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "trading" },
+          { "field": "restricted_list_flag", "operator": "==", "value": "yes" }
+        ]
+      }
+    },
+    {
+      "key": "trading_insider_review",
+      "domain": "trading",
+      "description": "Potential insider-risk orders should be reviewed.",
+      "rule": {
+        "type": "conditional",
+        "action": "FLAG",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "trading" },
+          { "field": "insider_flag", "operator": "==", "value": "yes" }
+        ]
+      }
+    },
+    {
+      "key": "trading_margin_retail_cap",
+      "domain": "trading",
+      "description": "Retail margin usage above threshold should be denied.",
+      "rule": {
+        "type": "prohibition",
+        "action": "DENY",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "trading" },
+          { "field": "client_category", "operator": "==", "value": "retail" },
+          { "field": "margin_used", "operator": ">", "value": 75 }
+        ]
+      }
+    },
+    {
+      "key": "bonds_private_placement_retail",
+      "domain": "bonds",
+      "description": "Retail investors should not access private placement bonds.",
+      "rule": {
+        "type": "prohibition",
+        "action": "DENY",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "bonds" },
+          { "field": "private_placement_flag", "operator": "==", "value": "yes" },
+          { "field": "investor_category", "operator": "==", "value": "retail" }
+        ]
+      }
+    },
+    {
+      "key": "bonds_low_rating_unsecured",
+      "domain": "bonds",
+      "description": "Low-rated unsecured debt should be flagged.",
+      "rule": {
+        "type": "conditional",
+        "action": "FLAG",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "bonds" },
+          { "field": "credit_rating", "operator": "==", "value": "bb" },
+          { "field": "secured_flag", "operator": "==", "value": "no" }
+        ]
+      }
+    },
+    {
+      "key": "bonds_unlisted_long_tenor_retail",
+      "domain": "bonds",
+      "description": "Long-tenor unlisted bonds for retail should be denied.",
+      "rule": {
+        "type": "prohibition",
+        "action": "DENY",
+        "logic": "AND",
+        "conditions": [
+          { "field": "domain", "operator": "==", "value": "bonds" },
+          { "field": "listing_status", "operator": "==", "value": "unlisted" },
+          { "field": "investor_category", "operator": "==", "value": "retail" },
+          { "field": "maturity_tenor", "operator": ">", "value": 7 }
+        ]
+      }
+    }
+  ]
+}

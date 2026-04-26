@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Learn - S92</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-green: #1a7c5c;
+            --dark-green: #0d3d2e;
+            --light-green: #2e9d75;
+            --accent-green: #1a7c5c;
+            --text-light: #1a1a1a;
+            --text-dark: #333333;
+            --text-muted: #666666;
+            --bg-light: #ffffff;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(26, 124, 92, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f4f3;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .orb-bg {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+            background: linear-gradient(135deg, #e8f0ed 0%, #f5f7f6 50%, #e5ebe8 100%);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.25;
+            will-change: transform;
+        }
+
+        .orb1 { width: 600px; height: 600px; background: linear-gradient(135deg, #4ecdc4, #2e9d75); top: -10%; left: 10%; }
+        .orb2 { width: 500px; height: 500px; background: linear-gradient(135deg, #1a7c5c, #0d3d2e); bottom: -5%; right: 10%; }
+        .orb3 { width: 450px; height: 450px; background: linear-gradient(135deg, #2e9d75, #4ecdc4); top: 40%; left: 50%; }
+        .orb4 { width: 300px; height: 300px; background: linear-gradient(135deg, #0d3d2e, #1a7c5c); top: 20%; right: 30%; }
+
+        .glass-layer {
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(60px) saturate(150%);
+            background: rgba(255, 255, 255, 0.5);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        nav {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            padding: 1.2rem 4rem;
+            box-shadow: 0 1px 0 rgba(26, 124, 92, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            letter-spacing: 1px;
+        }
+
+        .logo i { font-size: 1.6rem; color: var(--primary-green); }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover { color: var(--primary-green); }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-green);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after { width: 100%; }
+
+        .learn-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 4rem;
+            flex: 1;
+        }
+
+        .learn-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            margin-bottom: 2.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .learn-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            position: relative;
+        }
+
+        .sidebar {
+            background: var(--glass-bg);
+            padding: 1.5rem;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            height: fit-content;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(26, 124, 92, 0.04), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .sidebar:hover::before { opacity: 1; }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+            font-weight: 500;
+            border: 1px solid transparent;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar-item i {
+            width: 20px;
+            text-align: center;
+            color: var(--primary-green);
+        }
+
+        .sidebar-item:hover {
+            background: rgba(26, 124, 92, 0.08);
+            color: var(--primary-green);
+            border-color: rgba(26, 124, 92, 0.1);
+        }
+
+        .sidebar-item.active {
+            background: linear-gradient(135deg, var(--light-green), var(--primary-green));
+            color: white;
+            box-shadow: 0 4px 15px rgba(26, 124, 92, 0.2);
+        }
+        
+        .sidebar-item.active i {
+            color: white;
+        }
+
+        .content-area {
+            background: var(--glass-bg);
+            border-radius: 24px;
+            min-height: 600px;
+            box-shadow: var(--shadow);
+            padding: 2.5rem;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-area::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(26, 124, 92, 0.04), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .content-area:hover::before { opacity: 1; }
+
+        .content-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 500px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .content-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        footer {
+            background: rgba(26, 124, 92, 0.05);
+            color: var(--text-dark);
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+            margin-top: auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .footer-links a:hover { color: var(--primary-green); }
+
+        .copyright { font-size: 0.9rem; opacity: 0.6; color: var(--text-muted); }
+
+        @media (max-width: 1024px) {
+            nav { padding: 1rem 2rem; }
+            .learn-section { padding: 2rem; }
+            .learn-container { grid-template-columns: 1fr; }
+            .sidebar { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+            .sidebar-item { margin-bottom: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .learn-title { font-size: 2rem; }
+            .sidebar { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="orb-bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="orb orb4"></div>
+</div>
+
+<div class="glass-layer">
+    <nav>
+        <a href="#" class="logo">
+            <i class="fas fa-shield-alt"></i>
+            S - 92
+        </a>
+        <ul class="nav-links">
+            <li><a href="1.html">Home</a></li>
+            <li><a href="3.html">Learn</a></li>
+            <li><a href="4.html">News</a></li>
+            <li><a href="2.html">Dashboard</a></li>
+            <li><a href="rules.html">Rules</a></li>
+            <li><a href="#" id="authBtn">Login</a></li>
+        </ul>
+    </nav>
+
+    <section class="learn-section">
+        <h1 class="learn-title">Learn</h1>
+        <div class="learn-container">
+            <div class="sidebar">
+                <div class="sidebar-item active">
+                    <i class="fas fa-home"></i>
+                    <span>Introduction</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>Tax Compliance</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-university"></i>
+                    <span>RBI Guidelines</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Forex Regulations</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-landmark"></i>
+                    <span>Banking Norms</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Audit Reports</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-gavel"></i>
+                    <span>Legal Framework</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>FAQs</span>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div class="content-placeholder">
+                    <i class="fas fa-book-open"></i>
+                    <h2 style="font-size: 1.5rem; color: var(--dark-green); margin-bottom: 0.5rem;">Select a Topic</h2>
+                    <p>Choose a module from the sidebar to begin learning about compliance regulations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Support</a>
+            <a href="#">Documentation</a>
+        </div>
+        <p class="copyright">&copy; 2026 S92 Compliance Solutions. All rights reserved.</p>
+    </footer>
+</div>
+
+<script>
+    function updateAuthUI() {
+        const token = localStorage.getItem("token");
+        const authBtn = document.getElementById("authBtn");
+        if (!authBtn) return;
+        if (token) {
+            authBtn.textContent = "Log Out";
+            authBtn.onclick = (event) => {
+                event.preventDefault();
+                localStorage.removeItem("token");
+                window.location.href = "1.html";
+            };
+        } else {
+            authBtn.textContent = "Login";
+            authBtn.onclick = (event) => {
+                event.preventDefault();
+                window.location.href = "login.html";
+            };
+        }
+    }
+
+    updateAuthUI();
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    sidebarItems.forEach(item => {
+        item.addEventListener('click', () => {
+            sidebarItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+        });
+    });
+
+    const orbs = document.querySelectorAll('.orb');
+    window.addEventListener('mousemove', (e) => {
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+        orbs.forEach((orb) => {
+            const rect = orb.getBoundingClientRect();
+            const orbCenterX = rect.left + rect.width / 2;
+            const orbCenterY = rect.top + rect.height / 2;
+            const deltaX = mouseX - orbCenterX;
+            const deltaY = mouseY - orbCenterY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            const maxDistance = 600;
+
+            if (distance < maxDistance) {
+                const strength = (maxDistance - distance) / maxDistance;
+                const moveX = -deltaX * strength * 0.3;
+                const moveY = -deltaY * strength * 0.3;
+                const rotate = strength * 15 * (deltaX > 0 ? 1 : -1);
+                orb.style.transform = `translate(${moveX}px, ${moveY}px) rotate(${rotate}deg)`;
+            } else {
+                orb.style.transform = `translate(0px, 0px) rotate(0deg)`;
+            }
+        });
+    });
+
+    const glassCards = document.querySelectorAll('.sidebar, .content-area');
+    glassCards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        });
+    });
+</script>
+</body>
+</html>

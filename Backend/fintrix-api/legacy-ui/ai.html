@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S92 - Compliance AI</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+    --primary-green: #1a7c5c;
+    --dark-green: #0d3d2e;
+    --light-green: #2e9d75;
+    --accent-green: #1a7c5c;
+    --text-light: #1a1a1a;
+    --text-dark: #333333;
+    --text-muted: #666666;
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(26, 124, 92, 0.12);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f0f4f3;
+    color: var(--text-dark);
+    overflow-x: hidden;
+}
+
+.orb-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(135deg, #e8f0ed 0%, #f5f7f6 50%, #e5ebe8 100%);
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.25;
+}
+
+.orb1 {
+    width: 600px;
+    height: 600px;
+    background: linear-gradient(135deg, #4ecdc4, #2e9d75);
+    top: -10%;
+    left: 10%;
+}
+
+.orb2 {
+    width: 500px;
+    height: 500px;
+    background: linear-gradient(135deg, #1a7c5c, #0d3d2e);
+    bottom: -5%;
+    right: 10%;
+}
+
+.orb3 {
+    width: 400px;
+    height: 400px;
+    background: linear-gradient(135deg, #2e9d75, #4ecdc4);
+    top: 40%;
+    left: 50%;
+}
+
+.glass-layer {
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(60px);
+    min-height: 100vh;
+}
+
+nav {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    padding: 1.2rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 0 rgba(26, 124, 92, 0.1);
+}
+
+.logo {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--dark-green);
+    text-decoration: none;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.logo i {
+    color: var(--primary-green);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-links a {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--primary-green);
+}
+
+.ai-container {
+    max-width: 900px;
+    margin: 60px auto;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.ai-title {
+    font-size: 2rem;
+    color: var(--dark-green);
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.chat-box {
+    height: 420px;
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.ai-message {
+    margin-bottom: 15px;
+    color: var(--text-dark);
+    background: rgba(26, 124, 92, 0.05);
+    padding: 12px 16px;
+    border-radius: 12px;
+    border-left: 3px solid var(--primary-green);
+}
+
+.ai-message b {
+    color: var(--dark-green);
+}
+
+.user-message {
+    margin-bottom: 15px;
+    color: var(--primary-green);
+    text-align: right;
+    font-weight: 500;
+}
+
+.chat-input {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    outline: none;
+    background: #fff;
+    color: var(--text-dark);
+    font-family: 'Inter', sans-serif;
+}
+
+.chat-input input::placeholder {
+    color: #999;
+}
+
+.chat-input button {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(26, 124, 92, 0.2);
+}
+
+.chat-input button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26, 124, 92, 0.3);
+}
+
+.chat-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.chat-box ul {
+    margin-top: 8px;
+    padding-left: 20px;
+}
+
+.chat-box li {
+    margin-bottom: 4px;
+    color: var(--text-dark);
+}
+</style>
+</head>
+
+<body>
+
+<div class="orb-bg">
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+</div>
+
+<div class="glass-layer">
+
+<nav>
+<a href="1.html" class="logo">
+<i class="fas fa-shield-alt"></i>
+S-92
+</a>
+
+<ul class="nav-links">
+<li><a href="1.html">Home</a></li>
+<li><a href="3.html">Learn</a></li>
+<li><a href="4.html">News</a></li>
+<li><a href="2.html">Dashboard</a></li>
+<li><a href="rules.html">Rules</a></li>
+<li><a href="#" id="authBtn">Login</a></li>
+</ul>
+</nav>
+
+<div style="display:flex;">
+
+<div style="width:260px; background:#ffffffcc; padding:20px; border-right:1px solid #ddd;">
+
+<button onclick="createNewChat()" style="width:100%; padding:10px; margin-bottom:20px; background:#1a7c5c; color:white; border:none; border-radius:8px;">
++ New Chat
+</button>
+
+<div id="sessionList"></div>
+
+</div>
+
+<div style="flex:1;">
+
+<div class="ai-container">
+
+<h2 class="ai-title">Compliance AI Assistant</h2>
+
+<div id="chatBox" class="chat-box">
+
+<div class="ai-message">
+Hello. I can answer questions about banking regulations, RBI guidelines, forex rules and taxation compliance.
+</div>
+
+</div>
+
+<div class="chat-input">
+
+<input id="userInput" placeholder="Ask about RBI rules, banking compliance...">
+
+<button onclick="sendQuestion()">
+<i class="fas fa-paper-plane"></i>
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let currentSessionId = null;
+let sessions = [];
+let sessionTitles = JSON.parse(localStorage.getItem("ai_session_titles")) || {};
+
+if(!Array.isArray(sessions)){
+sessions = [];
+}
+
+async function initSession(){
+
+const token = localStorage.getItem("token");
+
+if(!token){
+window.location.href = "login.html";
+return;
+}
+
+await loadSessions();
+
+if(!currentSessionId){
+await createNewChat();
+}
+}
+
+async function createNewChat(){
+
+const token = localStorage.getItem("token");
+
+const res = await fetch("http://127.0.0.1:8000/api/ai/session/create",{
+method:"POST",
+headers:{
+"Authorization": `Bearer ${token}`
+}
+});
+
+const data = await res.json();
+
+currentSessionId = data.session_id;
+
+if(!sessions.includes(currentSessionId)){
+sessions.unshift(currentSessionId);
+}
+
+document.getElementById("chatBox").innerHTML = `
+<div class="ai-message">
+Hello. I can answer questions about banking regulations.
+</div>
+`;
+
+renderSessions();
+}
+
+async function sendQuestion(){
+
+if(!currentSessionId){
+alert("Session not ready");
+return;
+}
+
+const input=document.getElementById("userInput");
+const question=input.value;
+
+if(!question) return;
+
+if(!sessionTitles[currentSessionId]){
+sessionTitles[currentSessionId] = question.slice(0,30);
+localStorage.setItem("ai_session_titles", JSON.stringify(sessionTitles));
+renderSessions();
+}
+
+const chatBox=document.getElementById("chatBox");
+
+chatBox.innerHTML+=`<div class="user-message">${question}</div>`;
+chatBox.innerHTML+=`<div class="ai-message" id="loader">Thinking...</div>`;
+input.value="";
+
+const token = localStorage.getItem("token");
+
+const response = await fetch("http://127.0.0.1:8000/api/ai/session/message",{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization": `Bearer ${token}`
+},
+body:JSON.stringify({
+session_id: currentSessionId,
+message: question
+})
+});
+
+if(response.status === 401){
+localStorage.removeItem("token");
+alert("Session expired. Please login again.");
+window.location.href = "login.html";
+return;
+}
+
+if(!response.ok){
+const err = await response.text();
+console.error("Error:", err);
+alert("Something went wrong");
+return;
+}
+
+const data = await response.json();
+
+document.getElementById("loader")?.remove();
+
+renderAI(data);
+}
+
+function renderAI(data){
+    const chatBox = document.getElementById("chatBox");
+    
+    let parsed;
+    if (typeof data === 'string') {
+        try {
+            let cleaned = data.replace(/```json/g, "").replace(/```/g, "").trim();
+            let start = cleaned.indexOf("{");
+            let end = cleaned.lastIndexOf("}") + 1;
+            if (start !== -1 && end > start) {
+                cleaned = cleaned.substring(start, end);
+                parsed = JSON.parse(cleaned);
+                if (typeof parsed.answer === 'string' && parsed.answer.trim().startsWith("{") && parsed.answer.trim().endsWith("}")) {
+                    try {
+                        parsed = JSON.parse(parsed.answer.trim());
+                    } catch(e) {}
+                }
+            } else {
+                parsed = { answer: data, key_points: [] };
+            }
+        } catch(e) {
+            parsed = { answer: data, key_points: [] };
+        }
+     } else {
+    parsed = data;
+
+    if (parsed.answer && typeof parsed.answer === "string") {
+        let cleaned = parsed.answer.trim();
+
+        if (cleaned.startsWith("{") && cleaned.endsWith("}")) {
+            try {
+                parsed = JSON.parse(cleaned);
+            } catch(e) {}
+        }
+    }
+}
+
+    let answer = parsed.answer || "";
+    answer = answer.replace(/[{}\[\]*-]/g, "");
+    let keyPoints = parsed.key_points || [];
+
+    chatBox.innerHTML += `
+    <div class="ai-message">
+
+    <b>Answer</b><br>
+    ${answer}
+
+    <br><br>
+
+    <b>Key Points</b>
+    <ul>
+    ${keyPoints.map(p => `<li>${p}</li>`).join("")}
+    </ul>
+
+    <br>
+
+    <b>Rule Summary</b><br>
+    ${parsed.rule_summary || "No rule summary available."}
+
+    <br><br>
+
+    ${(parsed.rule_matches && parsed.rule_matches.length > 0) ? `
+    <b style="color:#1a7c5c;">⚖ Matched Compliance Rules</b>
+    <span style="font-size:12px; color:#666;">(${parsed.rules_checked || 0} rules checked)</span>
+    <div style="margin-top:8px;">
+    ${parsed.rule_matches.map(r => `
+        <div style="background:rgba(26,124,92,0.06); border:1px solid rgba(26,124,92,0.15); border-radius:8px; padding:10px 14px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:600; color:#0d3d2e; font-size:13px;">${r.rule_id} — ${r.title}</span>
+                <span style="background:${r.severity==='critical'?'#dc3545':r.severity==='high'?'#fd7e14':r.severity==='medium'?'#ffc107':'#28a745'}; color:${r.severity==='medium'||r.severity==='low'?'#333':'white'}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; text-transform:uppercase;">${r.severity}</span>
+            </div>
+            <div style="font-size:12px; color:#666; margin-top:4px;">
+                ${r.description || ''} 
+                ${r.source_document ? `<br><i>Source: ${r.source_document}</i>` : ''}
+            </div>
+            <div style="margin-top:4px;">
+                <span style="font-size:11px; background:rgba(26,124,92,0.1); padding:2px 6px; border-radius:3px; color:#1a7c5c;">${r.action}</span>
+                <span style="font-size:11px; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:3px; color:#666; margin-left:4px;">${r.regulator}</span>
+                <span style="font-size:11px; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:3px; color:#666; margin-left:4px;">${r.domain}</span>
+            </div>
+        </div>
+    `).join("")}
+    </div>
+    <br>
+    ` : `
+    <div style="font-size:12px; color:#999; margin-top:4px;">
+        <i>✓ ${parsed.rules_checked || 0} compliance rules checked — no violations detected</i>
+    </div>
+    <br>
+    `}
+
+    <b>Sources</b><br>
+    ${(parsed.sources || []).length ? (parsed.sources || []).map(s => `
+    <a href="http://127.0.0.1:8000/docs/${s.file}" target="_blank">
+    ${s.file} - Page ${s.page}
+    </a><br>`).join("") : `<span style="color:#777;">No source citations available.</span>`}
+
+    <br>
+
+    <b>Helpful Links</b><br>
+    ${(parsed.helpful_links || []).length ? (parsed.helpful_links || []).map(l => `
+    <a href="${l.url}" target="_blank">${l.title}</a><br>`).join("") : `<span style="color:#777;">No relevant links available.</span>`}
+
+    </div>
+    `;
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function loadHistory(){
+
+const token = localStorage.getItem("token");
+
+const res = await fetch(`http://127.0.0.1:8000/api/ai/session/history/${currentSessionId}`,{
+headers:{
+"Authorization": `Bearer ${token}`
+}
+});
+
+if(res.status === 401){
+alert("Session expired");
+window.location.href = "login.html";
+return;
+}
+
+if(!res.ok){
+console.error("History error:", await res.text());
+return;
+}
+
+const data = await res.json();
+
+if(!Array.isArray(data)){
+console.error("Invalid history:", data);
+return;
+}
+
+const chatBox = document.getElementById("chatBox");
+chatBox.innerHTML = "";
+
+data.forEach(msg => {
+
+if(msg.role === "user"){
+chatBox.innerHTML += `<div class="user-message">${msg.content}</div>`;
+}else{
+
+let parsed;
+
+try{
+parsed = JSON.parse(msg.content);
+}catch{
+parsed = {answer: msg.content};
+}
+
+renderAI(parsed);
+}
+});
+
+chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function renderSessions(){
+
+const list = document.getElementById("sessionList");
+
+list.innerHTML = "";
+
+sessions.forEach(id => {
+
+list.innerHTML += `
+<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:8px; border-radius:8px; background:${id===currentSessionId?'#e8f0ed':'transparent'}">
+
+<span onclick="switchSession(${id})" style="cursor:pointer; flex:1;">
+${sessionTitles[id] || `Chat ${id}`}
+</span>
+
+<i class="fas fa-trash" style="cursor:pointer; color:#999; margin-left:10px;" onclick="deleteSession(${id})"></i>
+
+</div>
+`;
+});
+}
+
+function switchSession(id){
+currentSessionId = id;
+document.getElementById("chatBox").innerHTML = "";
+renderSessions();
+loadHistory();
+}
+
+async function deleteSession(id){
+
+const token = localStorage.getItem("token");
+
+const res = await fetch(`http://127.0.0.1:8000/api/ai/session/delete/${id}`,{
+method:"DELETE",
+headers:{
+"Authorization": `Bearer ${token}`
+}
+});
+
+if(!res.ok){
+console.error("Delete failed:", await res.text());
+alert("Delete failed");
+return;
+}
+
+sessions = sessions.filter(s => s !== id);
+delete sessionTitles[id];
+
+localStorage.setItem("ai_session_titles", JSON.stringify(sessionTitles));
+
+if(currentSessionId === id){
+currentSessionId = sessions[0] || null;
+
+document.getElementById("chatBox").innerHTML = "";
+
+if(currentSessionId){
+loadHistory();
+}else{
+document.getElementById("chatBox").innerHTML = `
+<div class="ai-message">
+Start a new chat
+</div>
+`;
+}
+}
+
+renderSessions();
+}
+
+async function loadSessions(){
+
+const token = localStorage.getItem("token");
+
+const res = await fetch("http://127.0.0.1:8000/api/ai/session/list",{
+headers:{
+"Authorization": `Bearer ${token}`
+}
+});
+
+const data = await res.json();
+
+sessions = data.map(s => s.id);
+
+renderSessions();
+
+if(sessions.length > 0){
+currentSessionId = sessions[0];
+await loadHistory();
+}
+}
+
+function updateAuthUI(){
+const token = localStorage.getItem("token");
+const authBtn = document.getElementById("authBtn");
+if(!authBtn) return;
+if(token){
+authBtn.textContent = "Log Out";
+authBtn.onclick = (event) => {
+event.preventDefault();
+localStorage.removeItem("token");
+window.location.href = "1.html";
+};
+}else{
+authBtn.textContent = "Login";
+authBtn.onclick = (event) => {
+event.preventDefault();
+window.location.href = "login.html";
+};
+}
+}
+
+updateAuthUI();
+window.onload = initSession;
+
+</script>
+</body>
+</html>
