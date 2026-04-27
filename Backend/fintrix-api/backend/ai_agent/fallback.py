@@ -216,7 +216,7 @@ Rules:
 
     try:
         response = client.chat.complete(
-            model="mistral-small",
+            model="mistral-small-latest",
             messages=[{"role": "user", "content": prompt}],
         )
         content = (

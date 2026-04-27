@@ -57,6 +57,10 @@ FINANCE_KEYWORDS = (
     "p&l",
     "profit and loss",
     "treasury",
+    "lrs",
+    "budget",
+    "budgeting",
+    "fiscal",
     "liquidity",
     "capital adequacy",
     "risk management",
@@ -217,10 +221,21 @@ def is_finance_related(question: str) -> bool:
 
     if contains_keyword(question, FINANCE_KEYWORDS):
         return True
+
+    # Check for numbers + finance context (e.g. "10 lakh abroad")
+    if re.search(r'\d+', normalized) and any(w in normalized for w in ["lakh", "crore", "cr", "lac", "million", "usd", "inr", "transfer", "send"]):
+        return True
+
     if contains_keyword(question, NON_FINANCE_KEYWORDS):
         return False
 
-    # Unknown domain: prefer safe refusal over hallucinating non-finance content.
+    # If the question is long enough and doesn't look like obvious garbage/off-topic,
+    # we might want to let it through to the LLM which is better at judging.
+    # However, to maintain the guard's intent, we stay relatively strict but
+    # allow common finance sentence structures.
+    if any(w in normalized for w in ["how much", "can i", "what is the limit", "what are the rules"]):
+        return True
+
     return False
 
 

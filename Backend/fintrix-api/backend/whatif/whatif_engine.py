@@ -77,7 +77,7 @@ Return STRICT JSON:
 """
 
     response = client.chat.complete(
-        model="mistral-small",
+        model="mistral-small-latest",
         messages=[{"role": "user", "content": prompt}]
     )
 
@@ -432,7 +432,7 @@ Return STRICT JSON:
 
     try:
         response = client.chat.complete(
-            model="mistral-small",
+            model="mistral-small-latest",
             messages=[{"role": "user", "content": prompt}]
         )
 

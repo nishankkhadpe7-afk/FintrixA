@@ -74,6 +74,42 @@ def startup_event():
     if should_seed_rules_on_startup() or active_rules == 0:
         seed_rules()
 
+    # Seed some mock news if the news table is empty
+    try:
+        from backend.models import News
+        news_count = db.query(News).count()
+        if news_count == 0:
+            mock_news = [
+                News(
+                    title="RBI Updates LRS Reporting Norms for FY25",
+                    description="The Reserve Bank of India has issued new guidelines for reporting foreign remittances under the Liberalised Remittance Scheme.",
+                    source="RBI Press Release",
+                    url="https://www.rbi.org.in",
+                    published_at=datetime.utcnow()
+                ),
+                News(
+                    title="SEBI Tightens Insider Trading Regulations",
+                    description="New amendments to the PIT regulations aim to enhance market transparency and prevent unfair trading practices.",
+                    source="SEBI News",
+                    url="https://www.sebi.gov.in",
+                    published_at=datetime.utcnow()
+                ),
+                News(
+                    title="Budget 2024: New TCS Rates for Foreign Transfers",
+                    description="The Union Budget has proposed changes to the Tax Collected at Source (TCS) for foreign remittances exceeding 7 lakhs.",
+                    source="Finance Ministry",
+                    url="https://www.finmin.nic.in",
+                    published_at=datetime.utcnow()
+                )
+            ]
+            db.add_all(mock_news)
+            db.commit()
+            logger.info("Seeded 3 mock news items.")
+    except Exception as e:
+        logger.error(f"Error seeding news: {e}")
+    finally:
+        db.close()
+
     if should_enable_news_scheduler():
         scheduler = BackgroundScheduler()
         scheduler.add_job(fetch_finance_news, "interval", minutes=30)
@@ -123,11 +159,13 @@ class Question(BaseModel):
     question: str
 
 @app.post("/api/ask")
+@app.post("/api/ai-agent/ask")
 def ask(question: Question):
     try:
         from backend.ai_agent.rag_pipeline import ask_agent
         response = ask_agent(question.question)
-    except Exception:
+    except Exception as e:
+        logger.error(f"AI Agent error: {e}")
         from backend.ai_agent.fallback import ask_agent_fallback
         response = ask_agent_fallback(question.question)
 

@@ -59,7 +59,13 @@ def signup(data: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user)
 
     token = create_access_token({"user_id": user.id})
-    return {"message": "User created successfully", "token": token, "user": {"id": user.id, "email": user.email}}
+    return {
+        "message": "User created successfully",
+        "token": token,
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {"id": user.id, "email": user.email}
+    }
 
 
 @router.post("/login")
@@ -72,7 +78,12 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
 
     token = create_access_token({"user_id": user.id})
 
-    return {"token": token, "user": {"id": user.id, "email": user.email}}
+    return {
+        "token": token,
+        "access_token": token,
+        "token_type": "bearer",
+        "user": {"id": user.id, "email": user.email}
+    }
 
 
 @router.get("/me")

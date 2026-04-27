@@ -51,7 +51,7 @@ def run_mistral_prompt(prompt: str):
     try:
         client = get_mistral_client()
         response = client.chat.complete(
-            model="mistral-small",
+            model="mistral-small-latest",
             messages=[{"role": "user", "content": prompt}],
         )
         return response.choices[0].message.content.strip()
