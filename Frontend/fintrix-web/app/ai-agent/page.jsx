@@ -327,8 +327,8 @@ export default function AiAgentPage() {
       title="AI Agent"
       description="Ask the connected AI backend a finance or compliance question."
     >
-      <div className="h-[calc(100vh-240px)] min-h-[70vh] md:h-[calc(100vh-230px)]">
-        <div className="grid h-full min-h-0 grid-cols-1 gap-4 md:grid-cols-[28%_72%]">
+      <div className="min-h-[60vh]">
+        <div className="grid min-h-0 grid-cols-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
           <HistorySidebar
             darkMode={darkMode}
             sessions={sessions}

@@ -282,7 +282,7 @@ export default function ChatPanel({
 
   return (
     <section
-      className={`flex h-full min-h-0 flex-col rounded-3xl border shadow-soft ${
+      className={`flex min-h-0 flex-1 flex-col rounded-3xl border shadow-soft ${
         darkMode
           ? "border-white/14 bg-[#0d2948] text-white"
           : "border-fintrix-dark/10 bg-white text-fintrix-ink"
@@ -354,7 +354,7 @@ export default function ChatPanel({
                 key={message.id}
                 className={`flex w-full ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
-                <div className="w-full max-w-full sm:max-w-2xl">
+                <div className="w-full max-w-full lg:max-w-2xl">
                   <ChatMessage darkMode={darkMode} message={message} apiBase={apiBase} />
                 </div>
               </div>

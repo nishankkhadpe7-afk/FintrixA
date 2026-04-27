@@ -24,7 +24,7 @@ export default function HistorySidebar({
 }) {
   return (
     <aside
-      className={`flex h-full min-h-0 flex-col rounded-3xl border shadow-soft ${
+      className={`flex min-h-0 flex-col overflow-hidden rounded-3xl border shadow-soft ${
         darkMode
           ? "border-white/14 bg-[#0d2948] text-white"
           : "border-fintrix-dark/10 bg-white text-fintrix-ink"
@@ -60,7 +60,7 @@ export default function HistorySidebar({
       </div>
 
       <div
-        className={`${isMobileOpen ? "block" : "hidden"} min-h-0 overflow-y-auto p-3 md:block md:flex-1 md:min-h-0`}
+        className={`${isMobileOpen ? "block max-h-[50vh]" : "hidden"} min-h-0 overflow-y-auto p-3 md:block md:flex-1 md:max-h-none md:min-h-0`}
       >
         {sessions.length ? (
           <div className="space-y-2">

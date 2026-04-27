@@ -107,22 +107,22 @@ export default function LearnPage() {
           Videos & Links
         </a>
       </div>
-      <section id="foundations" className="mt-10 scroll-mt-20">
+      <section className="mt-10 scroll-mt-20">
         <h2 className={`text-2xl font-semibold ${darkMode ? "text-white" : "text-fintrix-ink"}`}>Foundations</h2>
         <p className={`mt-3 text-base ${darkMode ? "text-white/88" : "text-fintrix-ink/80"}`}>Master the fundamentals of fintech, finance, and compliance.</p>
       </section>
 
-      <section id="paths" className="mt-10 scroll-mt-20">
+      <section className="mt-10 scroll-mt-20">
         <h2 className={`text-2xl font-semibold ${darkMode ? "text-white" : "text-fintrix-ink"}`}>Topic Paths</h2>
         <p className={`mt-3 text-base ${darkMode ? "text-white/88" : "text-fintrix-ink/80"}`}>Structured learning paths for different compliance domains.</p>
       </section>
 
-      <section id="fintrix-fit" className="mt-10 scroll-mt-20">
+      <section className="mt-10 scroll-mt-20">
         <h2 className={`text-2xl font-semibold ${darkMode ? "text-white" : "text-fintrix-ink"}`}>FinTrix Fit</h2>
         <p className={`mt-3 text-base ${darkMode ? "text-white/88" : "text-fintrix-ink/80"}`}>Find resources tailored to your compliance needs.</p>
       </section>
 
-      <section id="videos" className="mt-10 scroll-mt-20">
+      <section className="mt-10 scroll-mt-20">
         <h2 className={`text-2xl font-semibold ${darkMode ? "text-white" : "text-fintrix-ink"}`}>Videos</h2>
         <p className={`mt-3 text-base ${darkMode ? "text-white/88" : "text-fintrix-ink/80"}`}>Watch in-depth tutorials and expert guidance.</p>
       </section>
@@ -178,12 +178,12 @@ export default function LearnPage() {
               href={item.href}
               target="_blank"
               rel="noreferrer"
-            className={`rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 ${
-              darkMode
-                ? "border-white/14 bg-white/10 hover:bg-white/14"
-                : "border-fintrix-dark/10 bg-fintrix-panel hover:bg-fintrix-panel/80"
-            }`}
-          >
+              className={`rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 ${
+                darkMode
+                  ? "border-white/14 bg-white/10 hover:bg-white/14"
+                  : "border-fintrix-dark/10 bg-fintrix-panel hover:bg-fintrix-panel/80"
+              }`}
+            >
               <div className={`text-lg font-semibold ${darkMode ? "text-white" : "text-fintrix-ink"}`}>{item.title}</div>
               <p className={`mt-4 text-base font-medium leading-7 ${darkMode ? "text-white/88" : "text-fintrix-ink/80"}`}>{item.description}</p>
               <div className="mt-5 text-base font-semibold text-fintrix-accent">Open resource</div>

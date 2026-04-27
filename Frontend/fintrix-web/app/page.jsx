@@ -48,7 +48,7 @@ export default function HomePage() {
       <main className={`min-h-screen px-3 py-5 sm:px-6 sm:py-8 lg:px-8 ${darkMode ? "bg-fintrix-dark" : "bg-fintrix-bg"}`}>
         <div className="mx-auto max-w-6xl">
           <Navbar darkMode={darkMode} onToggleTheme={toggleTheme} />
-          <div className={`mt-6 rounded-[28px] border p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)] backdrop-blur-2xl sm:p-8 ${darkMode ? "border-white/18 bg-white/12 text-white" : "border-fintrix-dark/10 bg-white text-fintrix-ink"}`}>
+          <div className={`mt-24 rounded-[28px] border p-6 shadow-[0_24px_60px_rgba(0,0,0,0.25)] backdrop-blur-2xl sm:mt-28 sm:p-8 ${darkMode ? "border-white/18 bg-white/12 text-white" : "border-fintrix-dark/10 bg-white text-fintrix-ink"}`}>
             <div className={`text-sm ${darkMode ? "text-white/75" : "text-fintrix-muted"}`}>Checking your session...</div>
           </div>
         </div>
@@ -66,6 +66,7 @@ export default function HomePage() {
       <Navbar
         darkMode={darkMode}
         onToggleTheme={toggleTheme}
+        darkModeNavItemsBlack
       />
 
       <section className="flex min-h-screen w-full flex-col">

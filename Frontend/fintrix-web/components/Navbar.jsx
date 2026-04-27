@@ -15,11 +15,11 @@ const navItems = [
 function LogoMark() {
   const logoSrc = "/fintrix-logo-white.png";
   return (
-    <div className="flex items-center">
+    <div className="flex items-center min-w-0">
       <img
         src={logoSrc}
         alt="FinTrix"
-        className="block h-10 w-[180px] object-contain object-left sm:h-11"
+        className="block h-9 w-[140px] object-contain object-left sm:h-10 sm:w-[168px] lg:h-11 lg:w-[180px]"
       />
     </div>
   );
@@ -58,7 +58,7 @@ function MenuIcon({ open }) {
   );
 }
 
-export default function Navbar({ darkMode, onToggleTheme, forceDark = false, themeLabelOverride = null }) {
+export default function Navbar({ darkMode, onToggleTheme, forceDark = false, themeLabelOverride = null, darkModeNavItemsBlack = false }) {
   const pathname = usePathname();
   const { isAuthenticated, isReady } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -80,9 +80,9 @@ export default function Navbar({ darkMode, onToggleTheme, forceDark = false, the
   }, []);
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-[100] px-3 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+    <header className="fixed left-0 right-0 top-0 z-[100] px-3 pt-4 sm:px-6 sm:pt-5 lg:px-8">
       <nav
-        className={`mx-auto rounded-2xl border px-3 py-3 backdrop-blur-2xl transition-all duration-300 sm:px-4 lg:px-5 ${
+        className={`mx-auto max-w-6xl rounded-2xl border px-3 py-3 backdrop-blur-2xl transition-all duration-300 sm:px-4 lg:px-5 ${
           useDarkStyle
             ? "border-white/15 bg-white/10 text-white shadow-[0_22px_60px_rgba(0,0,0,0.32)]"
             : "border-fintrix-dark/15 bg-white/35 text-fintrix-dark shadow-[0_22px_60px_rgba(5,47,95,0.16)]"
@@ -90,7 +90,7 @@ export default function Navbar({ darkMode, onToggleTheme, forceDark = false, the
         style={{ backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)" }}
       >
         <div className="flex items-center justify-between gap-3 xl:hidden">
-          <Link href="/" className="min-w-0 rounded-2xl transition-opacity duration-300 hover:opacity-85">
+          <Link href="/" className="min-w-0 flex-1 rounded-2xl transition-opacity duration-300 hover:opacity-85">
             <LogoMark />
           </Link>
 
@@ -101,7 +101,9 @@ export default function Navbar({ darkMode, onToggleTheme, forceDark = false, the
               onClick={onToggleTheme}
               className={`group inline-flex h-11 w-11 items-center justify-center rounded-2xl border shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${
                 useDarkStyle
-                  ? "border-white/15 bg-white/10 text-white"
+                  ? darkModeNavItemsBlack
+                    ? "border-black/20 bg-white/35 text-black"
+                    : "border-white/15 bg-white/10 text-white"
                   : "border-fintrix-dark/15 bg-white/55 text-fintrix-dark"
               }`}
             >
@@ -141,7 +143,9 @@ export default function Navbar({ darkMode, onToggleTheme, forceDark = false, the
                       isActive
                         ? "bg-fintrix-accent text-fintrix-dark shadow-md"
                         : useDarkStyle
-                          ? "text-white/90 hover:bg-white/10 hover:text-white"
+                          ? darkModeNavItemsBlack
+                            ? "text-black hover:bg-black/10 hover:text-black"
+                            : "text-white/90 hover:bg-white/10 hover:text-white"
                           : "text-[#173019] hover:bg-white/20 hover:text-fintrix-dark"
                     }`}
                   >
@@ -158,7 +162,9 @@ export default function Navbar({ darkMode, onToggleTheme, forceDark = false, the
                 onClick={onToggleTheme}
                 className={`group inline-flex min-w-[112px] items-center justify-center gap-2 rounded-2xl border px-4 py-3 shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${
                   useDarkStyle
-                    ? "border-white/15 bg-white/10 text-white"
+                    ? darkModeNavItemsBlack
+                      ? "border-black/20 bg-white/35 text-black"
+                      : "border-white/15 bg-white/10 text-white"
                     : "border-fintrix-dark/15 bg-white/55 text-fintrix-dark"
                 }`}
               >
@@ -195,7 +201,9 @@ export default function Navbar({ darkMode, onToggleTheme, forceDark = false, the
                       isActive
                         ? "bg-fintrix-accent text-fintrix-dark shadow-md"
                         : useDarkStyle
-                          ? "text-white/90 hover:bg-white/10 hover:text-white"
+                          ? darkModeNavItemsBlack
+                            ? "text-black hover:bg-black/10 hover:text-black"
+                            : "text-white/90 hover:bg-white/10 hover:text-white"
                           : "text-[#173019] hover:bg-white/20 hover:text-fintrix-dark"
                     }`}
                   >

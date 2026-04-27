@@ -66,7 +66,7 @@ export default function EvaluationPage() {
       title="Evaluation Simulator"
       description="Run a structured evaluation against the connected S92 rules engine."
     >
-      <div className="mb-5 grid gap-3 lg:grid-cols-3">
+      <div className="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <div className={`rounded-2xl border p-4 ${darkMode ? "border-white/14 bg-white/10" : "border-fintrix-dark/15 bg-white"}`}>
           <div className={`text-sm uppercase tracking-[0.2em] ${darkMode ? "text-fintrix-accent" : "text-fintrix-dark"}`}>Domain</div>
           <div className={`mt-2 text-base font-medium ${darkMode ? "text-white/88" : "text-fintrix-ink"}`}>Choose the scenario type you want to test.</div>
@@ -144,7 +144,7 @@ export default function EvaluationPage() {
 
         <button
           type="submit"
-          className="rounded-2xl bg-fintrix-accent px-5 py-3 text-base font-semibold text-fintrix-dark"
+          className="w-full rounded-2xl bg-fintrix-accent px-5 py-3 text-base font-semibold text-fintrix-dark sm:w-auto"
         >
           {loading ? "Running..." : "Run Evaluation"}
         </button>
@@ -160,7 +160,7 @@ export default function EvaluationPage() {
             <p className={`text-base font-medium ${darkMode ? "text-white/88" : "text-fintrix-ink"}`}>{result.error}</p>
           ) : (
             <>
-              <div className="grid gap-4 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 <div className={`rounded-2xl border p-4 ${darkMode ? "border-white/10 bg-white/5" : "border-fintrix-dark/15 bg-white"}`}>
                   <div className={`text-sm uppercase tracking-[0.2em] ${darkMode ? "text-fintrix-accent" : "text-fintrix-dark"}`}>Rules Checked</div>
                   <div className="mt-2 text-2xl font-semibold">{result.total_rules ?? 0}</div>

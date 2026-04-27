@@ -78,7 +78,7 @@ export default function WhatIfPage() {
         />
         <button
           type="submit"
-          className="rounded-2xl bg-fintrix-accent px-5 py-3 text-base font-semibold text-fintrix-dark"
+          className="w-full rounded-2xl bg-fintrix-accent px-5 py-3 text-base font-semibold text-fintrix-dark sm:w-auto"
         >
           {loading ? "Evaluating..." : "Run Scenario"}
         </button>
@@ -95,7 +95,7 @@ export default function WhatIfPage() {
             <p className={`text-base font-medium ${darkMode ? "text-white/88" : "text-fintrix-ink/80"}`}>{result.error}</p>
           ) : (
             <>
-              <div className="grid gap-4 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 <div className={`rounded-2xl border p-4 ${darkMode ? "border-white/10 bg-white/5" : "border-fintrix-dark/10 bg-[#f8fbf5]"}`}>
                   <div className="text-sm uppercase tracking-[0.2em] text-fintrix-accent">Compliance</div>
                   <div className="mt-2 text-lg font-semibold">{result.compliance_status || "Unknown"}</div>
@@ -115,7 +115,7 @@ export default function WhatIfPage() {
                   {result.analysis || result.reason || "No explanation available."}
                 </p>
               </div>
-              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <div className="mt-5 grid gap-4 xl:grid-cols-2">
                 <div className={`rounded-2xl border p-5 ${darkMode ? "border-white/10 bg-white/5" : "border-fintrix-dark/10 bg-[#f8fbf5]"}`}>
                   <h3 className={`text-base font-semibold ${darkMode ? "text-white" : "text-fintrix-ink"}`}>What could happen next</h3>
                   <ul className={`mt-3 space-y-2 text-base font-medium leading-6 ${darkMode ? "text-white/88" : "text-fintrix-ink/80"}`}>

@@ -394,7 +394,7 @@ export default function BlogPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-2xl bg-fintrix-accent px-5 py-3 text-base font-semibold text-fintrix-dark"
+                  className="w-full rounded-2xl bg-fintrix-accent px-5 py-3 text-base font-semibold text-fintrix-dark sm:w-auto"
                 >
                   {submitting ? "Saving..." : "Add comment"}
                 </button>
@@ -444,7 +444,7 @@ export default function BlogPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-2xl bg-fintrix-accent px-5 py-3 text-base font-semibold text-fintrix-dark"
+                  className="w-full rounded-2xl bg-fintrix-accent px-5 py-3 text-base font-semibold text-fintrix-dark sm:w-auto"
                 >
                   {submitting ? "Publishing..." : "Publish post"}
                 </button>

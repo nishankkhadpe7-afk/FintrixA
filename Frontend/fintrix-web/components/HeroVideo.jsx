@@ -18,6 +18,24 @@ function PauseIcon() {
   );
 }
 
+function VolumeOnIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="M11 6.2 8.2 8.7H5.7A1.7 1.7 0 0 0 4 10.4v3.2a1.7 1.7 0 0 0 1.7 1.7h2.5l2.8 2.5a1.15 1.15 0 0 0 1.9-.86V7.06a1.15 1.15 0 0 0-1.9-.86Z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15.2 9.2a4 4 0 0 1 0 5.6M17.8 7a7 7 0 0 1 0 10" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function VolumeOffIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="M11 6.2 8.2 8.7H5.7A1.7 1.7 0 0 0 4 10.4v3.2a1.7 1.7 0 0 0 1.7 1.7h2.5l2.8 2.5a1.15 1.15 0 0 0 1.9-.86V7.06a1.15 1.15 0 0 0-1.9-.86Z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m16.2 10.2 3.6 3.6M19.8 10.2l-3.6 3.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function formatTime(value) {
   if (!Number.isFinite(value)) {
     return "0:00";
@@ -32,11 +50,34 @@ function formatTime(value) {
 export default function HeroVideo() {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.matchMedia("(max-width: 767px)").matches);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+
+    setVideoFailed(false);
+    setVideoReady(false);
+    setCurrentTime(0);
+    setDuration(0);
+    video.load();
+  }, [isMobile]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -107,6 +148,17 @@ export default function HeroVideo() {
     setCurrentTime(nextTime);
   };
 
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+
+    const nextMuted = !video.muted;
+    video.muted = nextMuted;
+    setIsMuted(nextMuted);
+  };
+
   const showControls = isHovered || !isPlaying;
   const progressValue = duration ? (currentTime / duration) * 100 : 0;
 
@@ -122,9 +174,10 @@ export default function HeroVideo() {
           className="h-full w-full object-cover object-center"
           playsInline
           preload="metadata"
+          muted={isMuted}
           poster=""
         >
-          <source src="/hero-demo.mp4" type="video/mp4" />
+          <source src={isMobile ? "/hero-demo-mobile.mp4" : "/hero-demo.mp4"} type="video/mp4" />
         </video>
 
         <div className="pointer-events-none absolute inset-0" />
@@ -155,6 +208,15 @@ export default function HeroVideo() {
               </div>
               <button
                 type="button"
+                aria-label={isMuted ? "Unmute hero video" : "Mute hero video"}
+                onClick={toggleMute}
+                disabled={videoFailed}
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition duration-300 hover:bg-white/28 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+              </button>
+              <button
+                type="button"
                 aria-label={isPlaying ? "Pause hero video" : "Play hero video"}
                 onClick={togglePlayback}
                 disabled={videoFailed}
@@ -168,7 +230,7 @@ export default function HeroVideo() {
 
         {videoFailed ? (
           <div className="absolute inset-x-4 bottom-[6.5rem] z-20 rounded-2xl border border-white/12 bg-black/45 px-4 py-3 text-sm text-white/80 backdrop-blur-md sm:inset-x-auto sm:bottom-28 sm:left-7 sm:max-w-md">
-            Add a video file at <span className="font-semibold text-white">public/hero-demo.mp4</span> to enable playback with the new hover controls.
+            Add video files at <span className="font-semibold text-white">public/hero-demo.mp4</span> and optionally <span className="font-semibold text-white">public/hero-demo-mobile.mp4</span> for mobile playback.
           </div>
         ) : null}
       </div>
