@@ -1,22 +1,18 @@
 from sqlalchemy import create_engine
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
-import os
-from pathlib import Path
+from backend.config import get_database_url
 
-env_path = Path(__file__).resolve().parent / ".env"
-load_dotenv(dotenv_path=env_path)
+DATABASE_URL = get_database_url()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+engine_kwargs = {
+    "pool_pre_ping": True,
+}
 
-# Local fallback keeps dev and tests runnable when env vars are not configured.
-if not DATABASE_URL:
-    workspace_root = Path(__file__).resolve().parents[3]
-    fallback_db = workspace_root / "Database" / "s92.db"
-    DATABASE_URL = f"sqlite:///{fallback_db.as_posix()}"
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
 
 def ensure_ai_session_metadata_columns():

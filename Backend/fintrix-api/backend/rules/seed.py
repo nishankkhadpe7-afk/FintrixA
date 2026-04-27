@@ -313,7 +313,15 @@ def seed_rules():
     db = SessionLocal()
     try:
         existing = db.query(ComplianceRule).count()
+        active_existing = db.query(ComplianceRule).filter(ComplianceRule.is_active == True).count()  # noqa: E712
+
         if existing > 0:
+            if active_existing == 0:
+                db.query(ComplianceRule).update({ComplianceRule.is_active: True})
+                db.commit()
+                print(f"Reactivated {existing} existing compliance rules.")
+                return existing
+
             print(f"Database already has {existing} rules. Skipping seed.")
             return existing
 

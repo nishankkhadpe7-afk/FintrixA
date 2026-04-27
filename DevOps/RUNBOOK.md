@@ -74,3 +74,15 @@ Always run migrations before rolling out app code that depends on schema updates
 3. Check database connectivity and recent migration state
 4. Validate `ALLOWED_ORIGINS` and frontend `NEXT_PUBLIC_API_URL`
 5. Run smoke tests for core routes (`/api/health`, `/api/news`, `/api/blog/posts`)
+
+## 6) Supabase-specific deployment checklist
+
+1. Confirm `DATABASE_URL` uses the Postgres driver form:
+   - `postgresql+psycopg2://...?...sslmode=require`
+2. Confirm `APP_ENV=production`.
+3. Confirm `FINTRIX_SECRET_KEY` is not the development fallback.
+4. Confirm `ENABLE_AUTO_SCHEMA_CREATE=0`.
+5. Confirm `ENABLE_RULE_SEED_ON_STARTUP=0`.
+6. Confirm `ALLOWED_ORIGINS` exactly matches the deployed frontend origins.
+7. Run `alembic upgrade head`.
+8. Verify `/api/health` after deploy.

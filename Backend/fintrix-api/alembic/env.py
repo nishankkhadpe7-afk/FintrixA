@@ -5,6 +5,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from backend.database import Base
+from backend.config import get_database_url
 
 # Import model modules so metadata includes all tables.
 import backend.models  # noqa: F401
@@ -22,10 +23,7 @@ target_metadata = Base.metadata
 
 
 def get_url() -> str:
-    database_url = os.getenv("DATABASE_URL")
-    if database_url:
-        return database_url
-    return "sqlite:///../../Database/s92.db"
+    return get_database_url()
 
 
 def run_migrations_offline() -> None:

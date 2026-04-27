@@ -51,7 +51,8 @@ FinTrix includes **124 SEBI compliance rules** extracted from 30 official regula
 - Deploy `Frontend/fintrix-web` and `Backend/fintrix-api` as separate services.
 - Set `NEXT_PUBLIC_API_URL` in the frontend to your deployed backend URL.
 - Set backend secrets on the backend service instead of relying on `backend/.env`.
-- Set `DATABASE_URL` on Railway to your production database connection string.
+- Set `DATABASE_URL` on your backend platform to your Supabase Postgres connection string.
+- Use `Frontend/fintrix-web/.env.production.example` and `Backend/fintrix-api/.env.production.example` as templates for production environment variables.
 
 ## Production migration quick start
 
@@ -60,4 +61,4 @@ cd .\Backend\fintrix-api
 alembic upgrade head
 ```
 
-See `DevOps/README.md` and `DevOps/RUNBOOK.md` for full deployment, CORS, health-check, and backup guidance.
+See `DevOps/README.md` and `DevOps/RUNBOOK.md` for full deployment, Supabase setup, CORS, health-check, and backup guidance.

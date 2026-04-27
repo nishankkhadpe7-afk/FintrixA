@@ -2,8 +2,9 @@ from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
 import os
+from backend.config import DEFAULT_SECRET_KEY
 
-SECRET_KEY = os.getenv("FINTRIX_SECRET_KEY", "CHANGE_ME_IN_PROD")
+SECRET_KEY = os.getenv("FINTRIX_SECRET_KEY", DEFAULT_SECRET_KEY)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -29,5 +30,5 @@ def decode_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("user_id")
-    except:
+    except Exception:
         return None

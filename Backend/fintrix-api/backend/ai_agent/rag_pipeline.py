@@ -49,6 +49,9 @@ LINK_MAP = {
     "sbi": [
         {"title": "SBI Forex", "url": "https://sbi.co.in"}
     ],
+    "sebi": [
+        {"title": "SEBI Official Website", "url": "https://www.sebi.gov.in/"}
+    ],
     "axis": [
         {"title": "Axis Forex", "url": "https://www.axisbank.com"}
     ],
@@ -84,6 +87,7 @@ SOURCE_GROUPS = {
     "bank_of_baroda": {"BANK OF BARODA.pdf"},
     "federal": {"FEEDRAL BANK.pdf"},
     "sbi": {"sbi.pdf"},
+    "sebi": set(),
 }
 
 
@@ -113,6 +117,8 @@ def get_embedding_model():
 def detect_source_intent(question: str):
     q = question.lower()
     matches = []
+    if "sebi" in q:
+        matches.append("sebi")
     if "rbi" in q or "lrs" in q or "fema" in q or "remittance" in q:
         matches.append("rbi")
     if "axis" in q:
@@ -125,7 +131,7 @@ def detect_source_intent(question: str):
         matches.append("bank_of_baroda")
     if "federal" in q:
         matches.append("federal")
-    if "sbi" in q:
+    if re.search(r"\bsbi\b", q):
         matches.append("sbi")
     return matches
 
@@ -135,7 +141,7 @@ def allowed_sources_for_question(question: str):
     allowed = set()
     for intent in intents:
         allowed.update(SOURCE_GROUPS.get(intent, set()))
-    return allowed
+    return intents, allowed
 
 
 def helpful_links_for_question(question: str, sources):
@@ -143,6 +149,8 @@ def helpful_links_for_question(question: str, sources):
     detected_intents = detect_source_intent(question)
     source_names = {str(item.get("file", "")).lower() for item in sources}
 
+    if "sebi" in detected_intents:
+        return LINK_MAP["sebi"]
     if "rbi" in detected_intents or any("rbi" in source for source in source_names):
         return LINK_MAP["rbi"]
     if "hdfc" in detected_intents:
@@ -266,7 +274,8 @@ def ask_agent(question, history=""):
 
     bm25 = BM25Okapi(tokenized_texts)
     tokenized_query = question.lower().split()
-    allowed_sources = allowed_sources_for_question(question)
+    detected_intents, allowed_sources = allowed_sources_for_question(question)
+    strict_source_mode = bool(detected_intents)
 
     bm25_scores = bm25.get_scores(tokenized_query)
     bm25_top_idx = np.argsort(bm25_scores)[-3:][::-1]
@@ -282,17 +291,18 @@ def ask_agent(question, history=""):
 
     combined_indices = list(dict.fromkeys(combined_indices))
 
-    if allowed_sources:
-        filtered_indices = [
-            idx for idx in combined_indices
-            if metadata[idx].get("source") in allowed_sources
-        ]
-        if filtered_indices:
-            combined_indices = filtered_indices
+    if strict_source_mode:
+        if allowed_sources:
+            combined_indices = [
+                idx for idx in combined_indices
+                if metadata[idx].get("source") in allowed_sources
+            ]
+        else:
+            combined_indices = []
     
     context_chunks = []
 
-    if not vector_distances or vector_distances[0] > 1.3:
+    if not strict_source_mode and (not vector_distances or vector_distances[0] > 1.3):
         context_chunks = combined_indices[:3]
 
     for i in combined_indices:
@@ -300,7 +310,7 @@ def ask_agent(question, history=""):
         if sum(word in chunk.lower() for word in tokenized_query) >= 1:
             context_chunks.append(i)
 
-    if not context_chunks:
+    if not context_chunks and not strict_source_mode:
         context_chunks = combined_indices[:3]
 
     context_chunks = context_chunks[:3]

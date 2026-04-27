@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
 from pathlib import Path
 import os
+import logging
 from backend.database import engine, Base, SessionLocal, ensure_ai_session_metadata_columns
 from backend.models import News
 from backend.news_fetcher import fetch_finance_news
@@ -15,10 +16,18 @@ from backend.ai_agent.routes import router as ai_router
 from backend.blog.routes import router as blog_router
 from backend.rules.routes import router as rules_router
 from backend.chats.routes import router as chats_router
-from backend.rules.models import ComplianceRule, RuleEvaluation
+from backend.rules.models import ComplianceRule
+from backend.config import (
+    get_allowed_origins,
+    should_auto_create_schema,
+    should_enable_news_scheduler,
+    should_seed_rules_on_startup,
+    validate_runtime_config,
+)
 
 APP_ROOT = Path(__file__).resolve().parents[1]
 DOCS_DIR = APP_ROOT / "docs"
+logger = logging.getLogger(__name__)
 
 app = FastAPI(docs_url="/api/docs", redoc_url="/api/redoc")
 app.include_router(ai_router, prefix="/api/ai")
@@ -27,8 +36,7 @@ app.include_router(rules_router, prefix="/api/rules", tags=["Rules Engine"])
 app.include_router(blog_router, prefix="/api/blog", tags=["Blog"])
 security = HTTPBearer()
 
-origins_env = os.getenv("ALLOWED_ORIGINS", "")
-allowed_origins = [origin.strip() for origin in origins_env.split(",") if origin.strip()]
+allowed_origins = get_allowed_origins()
 allow_all = "*" in allowed_origins
 
 app.add_middleware(
@@ -39,21 +47,47 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if os.getenv("ENABLE_AUTO_SCHEMA_CREATE", "1") == "1":
-    Base.metadata.create_all(bind=engine)
-    ensure_ai_session_metadata_columns()
-
-# Auto-seed compliance rules on startup
-from backend.rules.seed import seed_rules
-seed_rules()
-
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
 app.include_router(session_router, prefix="/api/session", tags=["Session"])
 app.mount("/docs", StaticFiles(directory=str(DOCS_DIR)), name="docs")
-if os.getenv("ENABLE_NEWS_SCHEDULER", "1") == "1":
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(fetch_finance_news, "interval", minutes=30)
-    scheduler.start()
+scheduler = None
+
+
+@app.on_event("startup")
+def startup_event():
+    global scheduler
+
+    validate_runtime_config()
+
+    if should_auto_create_schema():
+        Base.metadata.create_all(bind=engine)
+        ensure_ai_session_metadata_columns()
+
+    from backend.rules.seed import seed_rules
+
+    db = SessionLocal()
+    try:
+        active_rules = db.query(ComplianceRule).filter(ComplianceRule.is_active == True).count()  # noqa: E712
+    finally:
+        db.close()
+
+    if should_seed_rules_on_startup() or active_rules == 0:
+        seed_rules()
+
+    if should_enable_news_scheduler():
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(fetch_finance_news, "interval", minutes=30)
+        scheduler.start()
+        logger.info("Finance news scheduler started.")
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    global scheduler
+
+    if scheduler:
+        scheduler.shutdown(wait=False)
+        scheduler = None
 
 
 def run_what_if_agent(question: str):

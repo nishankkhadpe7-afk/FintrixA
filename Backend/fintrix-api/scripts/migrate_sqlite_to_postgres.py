@@ -1,177 +1,208 @@
-#!/usr/bin/env python3
-"""Copy local SQLite data into a PostgreSQL database (for Supabase cutover).
+"""One-time migration script from local SQLite to Supabase/Postgres.
 
-Usage example:
-    python scripts/migrate_sqlite_to_postgres.py \
-        --target-url "postgresql+psycopg2://user:pass@host:6543/postgres?sslmode=require"
+Usage:
+    python scripts/migrate_sqlite_to_postgres.py
 
-Notes:
-- Run Alembic on target first: `alembic upgrade head`
-- This script skips `alembic_version`
-- Use --truncate-target to clear target tables before copy
+Required environment variables:
+    TARGET_DATABASE_URL   Postgres/Supabase SQLAlchemy URL
+
+Optional environment variables:
+    SOURCE_SQLITE_PATH    Defaults to ../../Database/s92.db
+    TRUNCATE_TARGET       Set to 1 to wipe target tables before import
 """
 
 from __future__ import annotations
 
-import argparse
+import os
+import sqlite3
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+from typing import Any
 
-from sqlalchemy import MetaData, create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import create_engine, select, text
+from sqlalchemy.orm import Session, sessionmaker
 
-
-def _quote_ident(name: str) -> str:
-    return '"' + name.replace('"', '""') + '"'
-
-
-def _default_source_sqlite() -> Path:
-    # .../Backend/fintrix-api/scripts -> workspace root -> Database/s92.db
-    workspace_root = Path(__file__).resolve().parents[3]
-    return workspace_root / "Database" / "s92.db"
+from backend.ai_agent.models import AIMessage, AISession
+from backend.auth.models import Message, User, WhatIfSession
+from backend.models import BlogComment, BlogPost, News
+from backend.rules.models import ComplianceRule, RuleEvaluation
 
 
-def _chunk_rows(rows: List[Dict], size: int = 500) -> List[List[Dict]]:
-    return [rows[index : index + size] for index in range(0, len(rows), size)]
+ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_SOURCE = ROOT / "Database" / "s92.db"
+
+TABLE_MODELS = [
+    User,
+    WhatIfSession,
+    Message,
+    AISession,
+    AIMessage,
+    BlogPost,
+    BlogComment,
+    News,
+    ComplianceRule,
+    RuleEvaluation,
+]
+
+TABLE_ORDER = [
+    "users",
+    "whatif_sessions",
+    "messages",
+    "ai_sessions",
+    "ai_messages",
+    "blog_posts",
+    "blog_comments",
+    "news",
+    "compliance_rules",
+    "rule_evaluations",
+]
 
 
-def migrate(source_sqlite: Path, target_url: str, truncate_target: bool) -> None:
-    source_url = f"sqlite:///{source_sqlite.as_posix()}"
+@dataclass
+class TableSpec:
+    name: str
+    model: Any
+    columns: list[str]
 
-    source_engine = create_engine(source_url)
-    target_engine = create_engine(target_url)
 
-    source_meta = MetaData()
-    target_meta = MetaData()
+def get_source_sqlite_path() -> Path:
+    raw_value = os.getenv("SOURCE_SQLITE_PATH", "").strip()
+    return Path(raw_value) if raw_value else DEFAULT_SOURCE
 
-    source_meta.reflect(bind=source_engine)
-    target_meta.reflect(bind=target_engine)
 
-    source_tables = [
-        table for table in source_meta.sorted_tables if table.name != "alembic_version"
-    ]
+def get_target_database_url() -> str:
+    target_url = (os.getenv("TARGET_DATABASE_URL") or os.getenv("DATABASE_URL") or "").strip()
+    if not target_url:
+        raise RuntimeError("TARGET_DATABASE_URL or DATABASE_URL must be set.")
+    if target_url.startswith("sqlite"):
+        raise RuntimeError("Target database must be Postgres/Supabase, not SQLite.")
+    return target_url
 
-    if not source_tables:
-        print("No source tables found to migrate.")
+
+def should_truncate_target() -> bool:
+    return os.getenv("TRUNCATE_TARGET", "0").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def sqlite_connect(path: Path) -> sqlite3.Connection:
+    if not path.exists():
+        raise FileNotFoundError(f"SQLite source database not found: {path}")
+    connection = sqlite3.connect(path)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def fetch_sqlite_columns(connection: sqlite3.Connection, table_name: str) -> list[str]:
+    rows = connection.execute(f"PRAGMA table_info({table_name})").fetchall()
+    return [row["name"] for row in rows]
+
+
+def fetch_sqlite_rows(connection: sqlite3.Connection, table_name: str, columns: list[str]) -> list[dict[str, Any]]:
+    if not columns:
+        return []
+    query = f"SELECT {', '.join(columns)} FROM {table_name}"
+    rows = connection.execute(query).fetchall()
+    return [dict(row) for row in rows]
+
+
+def build_table_specs(connection: sqlite3.Connection) -> list[TableSpec]:
+    specs: list[TableSpec] = []
+    for model in TABLE_MODELS:
+        table_name = model.__tablename__
+        available_columns = set(fetch_sqlite_columns(connection, table_name))
+        model_columns = [column.name for column in model.__table__.columns if column.name in available_columns]
+        specs.append(TableSpec(name=table_name, model=model, columns=model_columns))
+    return specs
+
+
+def assert_target_is_empty_or_allowed(session: Session, truncate_target: bool) -> None:
+    if truncate_target:
         return
-
-    print(f"Source DB: {source_sqlite}")
-    print(f"Target DB: {target_url.split('@')[-1] if '@' in target_url else 'configured'}")
-    print(f"Tables discovered: {len(source_tables)}")
-
-    copied_totals: Dict[str, int] = {}
-
-    try:
-        with source_engine.connect() as source_conn, target_engine.begin() as target_conn:
-            if truncate_target:
-                print("Truncating target tables...")
-                for table in reversed(source_tables):
-                    if table.name not in target_meta.tables:
-                        continue
-                    target_name = _quote_ident(table.name)
-                    target_conn.execute(text(f"TRUNCATE TABLE {target_name} RESTART IDENTITY CASCADE"))
-
-            for source_table in source_tables:
-                table_name = source_table.name
-                target_table = target_meta.tables.get(table_name)
-                if target_table is None:
-                    print(f"Skipping {table_name}: table missing in target")
-                    continue
-
-                source_rows = source_conn.execute(source_table.select()).mappings().all()
-                if not source_rows:
-                    copied_totals[table_name] = 0
-                    print(f"{table_name}: 0 rows")
-                    continue
-
-                # Keep only columns that exist in target table.
-                target_columns = {column.name for column in target_table.columns}
-                prepared_rows: List[Dict] = []
-                for row in source_rows:
-                    prepared_rows.append(
-                        {
-                            key: value
-                            for key, value in row.items()
-                            if key in target_columns
-                        }
-                    )
-
-                for chunk in _chunk_rows(prepared_rows):
-                    target_conn.execute(target_table.insert(), chunk)
-
-                copied_totals[table_name] = len(prepared_rows)
-                print(f"{table_name}: copied {len(prepared_rows)} rows")
-
-            # Reset postgres sequences so future inserts don't collide.
-            if target_engine.dialect.name.startswith("postgresql"):
-                for table_name, copied in copied_totals.items():
-                    if copied <= 0:
-                        continue
-                    target_table = target_meta.tables.get(table_name)
-                    if target_table is None:
-                        continue
-
-                    pk_columns = list(target_table.primary_key.columns)
-                    if len(pk_columns) != 1:
-                        continue
-
-                    pk = pk_columns[0]
-                    if not getattr(pk.type, "python_type", None) in (int,):
-                        continue
-
-                    q_table = _quote_ident(table_name)
-                    q_col = _quote_ident(pk.name)
-                    seq_sql = f"""
-                    SELECT setval(
-                        pg_get_serial_sequence('{q_table}', '{pk.name}'),
-                        COALESCE((SELECT MAX({q_col}) FROM {q_table}), 1),
-                        true
-                    )
-                    """
-                    target_conn.execute(text(seq_sql))
-
-    except SQLAlchemyError as exc:
-        raise RuntimeError(f"Migration failed: {exc}") from exc
-
-    print("\nMigration complete.")
-    print("Copied totals:")
-    for table_name, count in copied_totals.items():
-        print(f"- {table_name}: {count}")
+    for model in TABLE_MODELS:
+        has_rows = session.execute(select(model.id).limit(1)).scalar_one_or_none()
+        if has_rows is not None:
+            raise RuntimeError(
+                f"Target table '{model.__tablename__}' already has data. "
+                "Set TRUNCATE_TARGET=1 to allow replacing target data."
+            )
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Migrate SQLite data into PostgreSQL/Supabase")
-    parser.add_argument(
-        "--source-sqlite",
-        default=str(_default_source_sqlite()),
-        help="Path to source SQLite file (default: Database/s92.db)",
-    )
-    parser.add_argument(
-        "--target-url",
-        required=True,
-        help="Target PostgreSQL URL (Supabase connection string)",
-    )
-    parser.add_argument(
-        "--truncate-target",
-        action="store_true",
-        help="Truncate target tables before copy",
-    )
-    return parser.parse_args()
+def truncate_target_tables(session: Session) -> None:
+    session.execute(text("TRUNCATE TABLE messages, whatif_sessions, ai_messages, ai_sessions, blog_comments, blog_posts, news, rule_evaluations, compliance_rules, users RESTART IDENTITY CASCADE"))
+    session.commit()
 
 
-def main() -> int:
-    args = parse_args()
-    source_sqlite = Path(args.source_sqlite).resolve()
-    if not source_sqlite.exists():
-        raise FileNotFoundError(f"Source SQLite not found: {source_sqlite}")
+def normalize_row(table_name: str, row: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(row)
 
-    migrate(
-        source_sqlite=source_sqlite,
-        target_url=args.target_url,
-        truncate_target=args.truncate_target,
-    )
-    return 0
+    if table_name == "ai_sessions":
+        normalized.setdefault("title", "New chat")
+        normalized.setdefault("updated_at", normalized.get("created_at"))
+
+    return normalized
+
+
+def import_table(session: Session, spec: TableSpec, rows: list[dict[str, Any]]) -> int:
+    if not rows:
+        return 0
+
+    payload = [normalize_row(spec.name, row) for row in rows]
+    session.bulk_insert_mappings(spec.model, payload)
+    session.commit()
+    return len(payload)
+
+
+def reset_postgres_sequences(session: Session) -> None:
+    for model in TABLE_MODELS:
+        table = model.__tablename__
+        session.execute(
+            text(
+                """
+                SELECT setval(
+                    pg_get_serial_sequence(:table_name, 'id'),
+                    COALESCE((SELECT MAX(id) FROM """ + table + """), 1),
+                    COALESCE((SELECT MAX(id) FROM """ + table + """), 0) > 0
+                )
+                """
+            ),
+            {"table_name": table},
+        )
+    session.commit()
+
+
+def main() -> None:
+    source_path = get_source_sqlite_path()
+    target_url = get_target_database_url()
+    truncate_target = should_truncate_target()
+
+    sqlite_connection = sqlite_connect(source_path)
+    specs = build_table_specs(sqlite_connection)
+
+    target_engine = create_engine(target_url, pool_pre_ping=True)
+    SessionLocal = sessionmaker(bind=target_engine)
+
+    print(f"Source SQLite: {source_path}")
+    print(f"Target DB: {target_url.split('@')[-1]}")
+    print(f"Truncate target first: {'yes' if truncate_target else 'no'}")
+
+    with SessionLocal() as session:
+        assert_target_is_empty_or_allowed(session, truncate_target)
+
+        if truncate_target:
+            truncate_target_tables(session)
+
+        imported_counts: dict[str, int] = {}
+
+        for table_name in TABLE_ORDER:
+            spec = next(item for item in specs if item.name == table_name)
+            rows = fetch_sqlite_rows(sqlite_connection, spec.name, spec.columns)
+            imported_counts[spec.name] = import_table(session, spec, rows)
+            print(f"Imported {imported_counts[spec.name]} rows into {spec.name}")
+
+        reset_postgres_sequences(session)
+
+    sqlite_connection.close()
+    print("SQLite to Postgres migration completed successfully.")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

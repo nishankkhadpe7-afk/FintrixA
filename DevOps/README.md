@@ -19,6 +19,7 @@
 
 - Frontend: Vercel
 - Backend: Render / Railway / VPS
+- Database: Supabase Postgres
 
 ## Before production
 
@@ -48,6 +49,45 @@
 2. Run `alembic upgrade head` from `Backend/fintrix-api`.
 3. Start backend service.
 4. Deploy frontend with `NEXT_PUBLIC_API_URL` set.
+
+## Supabase Postgres setup
+
+1. Create a new project in Supabase.
+2. Open `Project Settings -> Database`.
+3. The password in the connection string is the database password you created with the project.
+4. If you forgot it, reset it in `Project Settings -> Database Settings`.
+5. Copy the connection string and use the pooler form for Railway, not local SQLite.
+6. Set the backend `DATABASE_URL` like this:
+   - `postgresql+psycopg2://postgres:[PASSWORD]@[HOST]:5432/postgres?sslmode=require`
+7. Set `APP_ENV=production`.
+8. Set a strong `FINTRIX_SECRET_KEY`.
+9. Set `ALLOWED_ORIGINS` to your frontend domain or domains.
+10. Set `ENABLE_AUTO_SCHEMA_CREATE=0`.
+11. Set `ENABLE_RULE_SEED_ON_STARTUP=0`.
+12. Set `ENABLE_NEWS_SCHEDULER=0` unless you explicitly want one backend instance doing scheduled fetches.
+13. Run `alembic upgrade head` against the Supabase database before first production traffic.
+14. If you want starter compliance rules in production, seed them intentionally with a one-time script run instead of relying on startup auto-seeding.
+
+## Migrating existing SQLite data
+
+If you want to move your existing local data from `Database/s92.db` into Supabase:
+
+1. Run migrations first:
+   - `cd Backend/fintrix-api`
+   - `python -m alembic upgrade head`
+2. Run the one-time migration script:
+   - `TARGET_DATABASE_URL="your-supabase-url"`
+   - `python scripts/migrate_sqlite_to_postgres.py`
+3. If the target already contains data and you intentionally want to replace it:
+   - set `TRUNCATE_TARGET=1`
+
+## Backend production env file
+
+Use `Backend/fintrix-api/.env.production.example` as the template for your backend deployment variables.
+
+## Frontend production env file
+
+Use `Frontend/fintrix-web/.env.production.example` as the template for your frontend deployment variables.
 
 ## CORS examples
 
