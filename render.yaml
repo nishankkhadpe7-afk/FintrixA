@@ -1,0 +1,23 @@
+# Render manifest for Fintrix backend
+# This file declares a Docker-backed web service and an optional Postgres database.
+# Edit branch/region/plan as needed before creating the service on Render.
+
+services:
+  - type: web
+    name: fintrix-backend
+    env: docker
+    branch: main
+    dockerfilePath: Backend/fintrix-api/Dockerfile
+    plan: starter
+    region: oregon
+    autoDeploy: true
+    envVars:
+      - key: INGEST_ON_STARTUP
+        value: "false"
+
+databases:
+  - name: fintrix-db
+    plan: starter
+    region: oregon
+    # Render will create a managed Postgres instance. After creation, copy the
+    # DATABASE_URL into the web service's env vars (or reference via secrets).
