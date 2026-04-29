@@ -1,7 +1,10 @@
 import httpx
 import json
+import time
 
 base_url = 'http://127.0.0.1:8000'
+email = f'test.frontend.{int(time.time())}@example.com'
+password = 'AdminPass123!'
 
 print('=== FRONTEND CONNECTIVITY VERIFICATION ===')
 print()
@@ -11,9 +14,23 @@ print('1. Testing login...')
 try:
     response = httpx.post(
         f'{base_url}/api/auth/login',
-        json={'email': 'test.admin@example.com', 'password': 'AdminPass123!'},
+        json={'email': email, 'password': password},
         timeout=10
     )
+    if response.status_code != 200:
+        signup = httpx.post(
+            f'{base_url}/api/auth/signup',
+            json={'email': email, 'password': password},
+            timeout=10
+        )
+        if signup.status_code == 200:
+            print('   ✓ Temporary user created')
+            response = httpx.post(
+                f'{base_url}/api/auth/login',
+                json={'email': email, 'password': password},
+                timeout=10
+            )
+
     if response.status_code == 200:
         data = response.json()
         token = data.get('access_token', '')

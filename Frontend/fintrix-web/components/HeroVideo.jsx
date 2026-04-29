@@ -176,6 +176,7 @@ export default function HeroVideo() {
           preload="metadata"
           muted={isMuted}
           poster=""
+          loop
         >
           <source src={isMobile ? "/hero-demo-mobile.mp4" : "/hero-demo.mp4"} type="video/mp4" />
         </video>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ConnectedShell from "../../components/ConnectedShell";
 import { useTheme } from "../../components/ThemeProvider";
@@ -94,6 +94,7 @@ export default function AiAgentPage() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isHistoryOpenMobile, setIsHistoryOpenMobile] = useState(false);
+  const initializedSessionId = useRef(null);
 
   const activeSession = useMemo(
     () => sessions.find((session) => session.id === activeSessionId) || null,
@@ -187,8 +188,17 @@ export default function AiAgentPage() {
   }, [API_BASE, isReady, isAuthenticated]);
 
   useEffect(() => {
-    if (!isReady || !isAuthenticated || !activeSessionId) {
+    if (!isReady || !isAuthenticated) {
+      return;
+    }
+
+    if (!activeSessionId) {
       setMessages([]);
+      return;
+    }
+
+    if (initializedSessionId.current === activeSessionId) {
+      initializedSessionId.current = null;
       return;
     }
 
@@ -213,7 +223,8 @@ export default function AiAgentPage() {
         return;
       }
       sessionId = created.id;
-      setActiveSessionId(created.id);
+      initializedSessionId.current = sessionId;
+      setActiveSessionId(sessionId);
       setIsHistoryOpenMobile(false);
     }
 
@@ -228,7 +239,24 @@ export default function AiAgentPage() {
     ]);
 
     try {
-      await appendMessage(sessionId, "user", askedQuestion);
+      const appendRes = await appendMessage(sessionId, "user", askedQuestion);
+
+      if (!appendRes) {
+        // Append to chat failed; remove pending and show a friendly error
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === pendingId
+              ? {
+                  id: `assistant-${Date.now()}`,
+                  role: "assistant",
+                  result: buildErrorResult("Failed to save your message. Try again."),
+                }
+              : message
+          )
+        );
+        setLoading(false);
+        return;
+      }
 
       const aiResponse = await authorizedFetch(`${API_BASE}/api/ai/session/message`, {
         method: "POST",
@@ -240,7 +268,17 @@ export default function AiAgentPage() {
       });
 
       if (!aiResponse) {
-        setMessages((current) => current.filter((message) => message.id !== pendingId));
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === pendingId
+              ? {
+                  id: `assistant-${Date.now()}`,
+                  role: "assistant",
+                  result: buildErrorResult("Unable to connect to the AI backend."),
+                }
+              : message
+          )
+        );
         setLoading(false);
         return;
       }
@@ -254,9 +292,14 @@ export default function AiAgentPage() {
 
       const normalized = aiResponse.ok
         ? normalizeResult(payload)
-        : buildErrorResult(payload?.detail || "Unable to get an answer right now.");
+        : buildErrorResult((payload && payload.detail) || "Unable to get an answer right now.");
 
-      await appendMessage(sessionId, "assistant", JSON.stringify(normalized));
+      // Try to persist assistant message in chats table; ignore failure but log
+      try {
+        await appendMessage(sessionId, "assistant", JSON.stringify(normalized));
+      } catch (err) {
+        console.warn("Failed to persist assistant message:", err);
+      }
 
       setMessages((current) =>
         current.map((message) =>
@@ -270,7 +313,12 @@ export default function AiAgentPage() {
         )
       );
 
-      await fetchSessions(sessionId);
+      // Refresh sessions to keep list in sync; ignore failures
+      try {
+        await fetchSessions(sessionId);
+      } catch (err) {
+        console.warn("fetchSessions failed:", err);
+      }
     } catch {
       const fallback = buildErrorResult("Unable to connect to the AI backend.");
       setMessages((current) =>

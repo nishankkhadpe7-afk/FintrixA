@@ -2,7 +2,10 @@
 
 function formatTimestamp(value) {
   if (!value) return "";
-  const date = new Date(value);
+  const input = typeof value === "string" && /\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}/.test(value) && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(value)
+    ? `${value.replace(" ", "T")}Z`
+    : value;
+  const date = new Date(input);
   if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleString([], {
     month: "short",

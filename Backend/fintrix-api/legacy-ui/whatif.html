@@ -75,12 +75,14 @@ body {
 .glass-layer {
     position: relative;
     z-index: 2;
+    -webkit-backdrop-filter: blur(60px);
     backdrop-filter: blur(60px);
     min-height: 100vh;
 }
 
 nav {
     background: rgba(255, 255, 255, 0.75);
+    -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
     padding: 1.2rem 4rem;
     display: flex;

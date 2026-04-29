@@ -1,0 +1,45 @@
+name: CI - Migrations & Smoke
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  migrate-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install backend deps
+        working-directory: Backend/fintrix-api
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run migrations
+        working-directory: Backend/fintrix-api
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python -m alembic upgrade head
+
+      - name: Run smoke scripts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+        run: |
+          # Run the simple smoke scripts as regular Python scripts so they fail the job on non-zero exit
+          python test_endpoints.py
+          python test_full_integration.py
+
+      - name: Notes
+        run: |
+          echo "If you use Vercel/Railway GitHub integrations they will deploy after this workflow completes."
+          echo "To add automated deploy steps (vercel/railway CLI), add tokens to repo secrets and extend this workflow."

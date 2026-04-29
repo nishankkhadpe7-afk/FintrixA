@@ -1,14 +1,29 @@
 import httpx
+import time
 
 base_url = 'http://127.0.0.1:8000'
+email = f'test.admin.{int(time.time())}@example.com'
+password = 'AdminPass123!'
 
-# Login
-print('Logging in...')
+print('Preparing test user...')
 response = httpx.post(
     f'{base_url}/api/auth/login',
-    json={'email': 'test.admin@example.com', 'password': 'AdminPass123!'},
+    json={'email': email, 'password': password},
     timeout=10
 )
+if response.status_code != 200:
+    signup = httpx.post(
+        f'{base_url}/api/auth/signup',
+        json={'email': email, 'password': password},
+        timeout=10
+    )
+    signup.raise_for_status()
+    response = httpx.post(
+        f'{base_url}/api/auth/login',
+        json={'email': email, 'password': password},
+        timeout=10
+    )
+response.raise_for_status()
 token = response.json().get('access_token', '')
 print(f'Token obtained: {token[:20]}...')
 print()
