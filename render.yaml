@@ -8,6 +8,8 @@ services:
     env: docker
     branch: main
     dockerfilePath: Backend/fintrix-api/Dockerfile
+    # Ensure the Docker build context is the backend folder so COPY paths resolve
+    dockerBuildContextDirectory: Backend/fintrix-api
     plan: starter
     region: oregon
     autoDeploy: true
