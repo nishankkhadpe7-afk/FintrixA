@@ -55,11 +55,23 @@ export default function NewsPage() {
                 />
               ) : (
                 <div
-                  className={`flex h-52 w-full items-center justify-center text-base font-medium ${
-                    darkMode ? "bg-white/5 text-white/70" : "bg-[#eef4eb] text-fintrix-ink/70"
+                  className={`relative flex h-44 w-full items-center justify-center overflow-hidden text-base font-medium sm:h-52 ${
+                    darkMode ? "bg-white/6 text-white/72" : "bg-[#edf7fb] text-fintrix-ink/70"
                   }`}
                 >
-                  No preview image
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(192,253,251,0.28),_transparent_45%),linear-gradient(135deg,_rgba(255,255,255,0.08),_rgba(255,255,255,0.02))]" />
+                  <div className="relative z-10 flex flex-col items-center gap-2">
+                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl border ${darkMode ? "border-white/12 bg-white/8" : "border-fintrix-dark/10 bg-white"}`}>
+                      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7">
+                        <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z" />
+                        <path d="m7 15 2.8-2.8a1 1 0 0 1 1.4 0L13 14l1.2-1.2a1 1 0 0 1 1.4 0L17 15" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="10" cy="9" r="1.2" />
+                      </svg>
+                    </div>
+                    <span className="rounded-full border border-current/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em]">
+                      Image unavailable
+                    </span>
+                  </div>
                 </div>
               )}
               <div className="p-4 sm:p-5">

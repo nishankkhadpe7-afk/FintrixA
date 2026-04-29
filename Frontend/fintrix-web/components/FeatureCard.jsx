@@ -23,14 +23,17 @@ export default function FeatureCard({ title, description, icon, href, darkMode =
   return (
     <Link
       href={href}
-      className="group flex h-full min-h-[205px] flex-col items-start gap-4 rounded-[20px] border border-fintrix-dark/10 bg-white p-6 shadow-[0_12px_24px_rgba(5,47,95,0.15)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_30px_rgba(5,47,95,0.2)] sm:flex-row sm:gap-6 sm:p-7"
+      className={`group relative flex min-h-[300px] w-full transform flex-col items-center gap-4 overflow-hidden rounded-2xl border p-8 text-center transition-all duration-300 hover:-translate-y-1 sm:p-10 ${
+        darkMode ? "border-white/10 bg-white text-fintrix-dark" : "border-fintrix-dark/10 bg-white text-fintrix-ink"
+      }`}
     >
-      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full shadow-soft sm:h-[62px] sm:w-[62px]">
+      {/* circular icon at top (inside flow) */}
+      <div className="mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 bg-white p-2 shadow-lg sm:h-24 sm:w-24">
         {iconSrc ? (
           <img
             src={iconSrc}
             alt={`${title} logo`}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
             onError={(event) => {
               const currentIndex = iconCandidates.findIndex((candidate) => event.currentTarget.src.endsWith(candidate));
               const nextSrc = iconCandidates[currentIndex + 1];
@@ -38,17 +41,21 @@ export default function FeatureCard({ title, description, icon, href, darkMode =
               event.currentTarget.src = nextSrc;
             }}
           />
-        ) : null}
+        ) : (
+          <div className={`flex h-full w-full items-center justify-center text-sm font-semibold ${darkMode ? "text-white/80" : "text-fintrix-dark/70"}`}>
+            {icon?.toUpperCase?.() || ""}
+          </div>
+        )}
       </div>
 
-      <div className="flex-1">
-        <h3 className="text-2xl font-semibold tracking-[-0.03em] text-fintrix-ink transition-colors duration-300 group-hover:text-fintrix-dark sm:text-[30px]">
-          {title}
-        </h3>
+      <div className="flex w-full flex-col items-center justify-center gap-3">
+        <h3 className="text-2xl font-semibold leading-tight sm:text-3xl text-fintrix-dark">{title}</h3>
 
-        <p className="mt-2 text-base font-semibold leading-7 text-fintrix-muted sm:text-lg sm:leading-8">
-          {description}
-        </p>
+        <p className="max-w-[32rem] text-sm font-medium leading-7 sm:text-base text-fintrix-ink/78">{description}</p>
+
+        <div className="mt-4 flex items-center gap-3">
+          <span className="rounded-full border px-4 py-2 text-sm font-semibold border-fintrix-dark/10 bg-white text-fintrix-dark">Open</span>
+        </div>
       </div>
     </Link>
   );

@@ -437,12 +437,13 @@ Question:
 """
 
     try:
-        response = client.chat.complete(
-            model="mistral-small-latest",
+        response = chat_complete_with_retry(
+            client,
+            model="grok-4.20",
             messages=[{"role": "user", "content": prompt}]
         )
     except Exception as exc:
-        logger.exception("Mistral chat.complete failed: %s", exc)
+        logger.exception("Grok API call failed: %s", exc)
         # Propagate exception to allow outer fallback to trigger
         raise
 

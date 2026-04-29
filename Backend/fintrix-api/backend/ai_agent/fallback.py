@@ -243,7 +243,7 @@ Rules:
     try:
         response = chat_complete_with_retry(
             client,
-            model="mistral-small-latest",
+            model="grok-4.20",
             messages=[{"role": "user", "content": prompt}],
             attempts=2,
             base_delay=0.5,

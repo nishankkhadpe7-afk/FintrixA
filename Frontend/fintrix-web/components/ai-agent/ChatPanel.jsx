@@ -308,7 +308,7 @@ export default function ChatPanel({
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-5">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-5" style={{ maxHeight: "calc(100vh - 280px)" }}>
         {!messages.length ? (
           <section
             className={`flex flex-col items-center justify-center rounded-3xl border px-6 py-12 text-center shadow-soft sm:px-8 ${
