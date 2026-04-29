@@ -137,6 +137,15 @@ def run_what_if_agent(question: str):
 def health():
     return {"status": "ok"}
 
+
+@app.get("/health")
+def root_health():
+    """Root-level health check for platforms like Render.
+
+    Returns a simple JSON payload with service status and timestamp.
+    """
+    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+
 @app.get("/api/news")
 def get_news():
     db = SessionLocal()
