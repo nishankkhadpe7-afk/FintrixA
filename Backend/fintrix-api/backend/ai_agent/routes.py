@@ -15,9 +15,18 @@ from pydantic import BaseModel
 import json
 import time
 from datetime import datetime, timezone
+import logging
 
 router = APIRouter()
 security = HTTPBearer()
+
+
+def serialize_datetime(value: datetime | None):
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc).isoformat()
 
 
 def get_db():
@@ -95,7 +104,7 @@ CONTINUE
 
     try:
         res = client.chat.complete(
-            model="mistral-small",
+            model="mistral-small-latest",
             messages=[{"role": "user", "content": prompt}]
         )
         text = res.choices[0].message.content.upper()
@@ -138,7 +147,25 @@ def send_message(
     ).first()
 
     if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
+        # Defensive fallback: try to use the most recently-updated session for the user,
+        # or create a new one if none exist. This avoids surfacing a hard 404 to the UI
+        # when the frontend creates sessions via the /api/chats path but race/consistency
+        # issues cause a lookup miss here.
+        logger = logging.getLogger(__name__)
+        logger.warning("AI session id %s not found for user %s; attempting fallback", data.session_id, user.id)
+
+        fallback = db.query(AISession).filter(AISession.user_id == user.id).order_by(AISession.updated_at.desc()).first()
+        if fallback:
+            session = fallback
+            logger.info("Using fallback AI session id %s for user %s", session.id, user.id)
+        else:
+            # Create a new session for the user
+            new_session = AISession(user_id=user.id)
+            db.add(new_session)
+            db.commit()
+            db.refresh(new_session)
+            session = new_session
+            logger.info("Created new AI session id %s for user %s", session.id, user.id)
 
     if data.persist:
         user_msg = AIMessage(
@@ -238,7 +265,7 @@ def get_history(
         {
             "role": m.role,
             "content": m.content,
-            "timestamp": str(m.timestamp)
+            "timestamp": serialize_datetime(m.timestamp)
         }
         for m in messages
     ]

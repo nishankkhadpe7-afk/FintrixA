@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
+from datetime import datetime
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -152,8 +153,8 @@ def get_article(news_id: int):
 
 @app.get("/api/fetch-news")
 def manual_fetch():
-    fetch_finance_news()
-    return {"message": "News fetched successfully"}
+    added = fetch_finance_news()
+    return {"message": "News fetched", "added": int(added)}
 
 class Question(BaseModel):
     question: str

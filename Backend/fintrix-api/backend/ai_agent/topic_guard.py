@@ -153,6 +153,10 @@ GREETING_PATTERNS = (
     "can you help me",
     "help me",
     "are you there",
+    "who are you",
+    "what can you do",
+    "how can you help",
+    "tell me about yourself",
 )
 
 OFF_TOPIC_MESSAGE = (

@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 
 import httpx
@@ -20,3 +21,18 @@ def get_mistral_client():
     # directly to Mistral unless this app explicitly adds proxy support later.
     http_client = httpx.Client(trust_env=False, timeout=timeout_ms / 1000)
     return Mistral(api_key=api_key, client=http_client, timeout_ms=timeout_ms)
+
+
+def chat_complete_with_retry(client, *, model: str, messages, attempts: int = 3, base_delay: float = 0.6, **kwargs):
+    last_error = None
+
+    for attempt in range(1, attempts + 1):
+        try:
+            return client.chat.complete(model=model, messages=messages, **kwargs)
+        except Exception as exc:
+            last_error = exc
+            if attempt >= attempts:
+                raise
+            time.sleep(base_delay * attempt)
+
+    raise last_error

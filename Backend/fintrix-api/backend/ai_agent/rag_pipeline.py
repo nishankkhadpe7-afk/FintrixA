@@ -1,6 +1,7 @@
 import numpy as np
 from backend.ai_agent.vector_store import load_vector_store
 from backend.mistral_client import get_mistral_client
+from backend.mistral_client import chat_complete_with_retry
 from rank_bm25 import BM25Okapi
 import os
 from dotenv import load_dotenv
@@ -12,6 +13,9 @@ from backend.ai_agent.topic_guard import (
     build_welcome_response,
     classify_question_scope,
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -134,7 +138,6 @@ def detect_source_intent(question: str):
     if re.search(r"\bsbi\b", q):
         matches.append("sbi")
     return matches
-
 
 def allowed_sources_for_question(question: str):
     intents = detect_source_intent(question)
@@ -302,18 +305,30 @@ def ask_agent(question, history=""):
     
     context_chunks = []
 
+    # If not in strict source mode, use top vector results as base if they are relevant enough
     if not strict_source_mode and (not vector_distances or vector_distances[0] > 1.3):
-        context_chunks = combined_indices[:3]
+        context_chunks.extend(combined_indices[:3])
 
+    # Add chunks that have keyword matches
     for i in combined_indices:
         chunk = texts[i]
         if sum(word in chunk.lower() for word in tokenized_query) >= 1:
             context_chunks.append(i)
 
+    # Fallback if no chunks selected
     if not context_chunks and not strict_source_mode:
         context_chunks = combined_indices[:3]
 
-    context_chunks = context_chunks[:3]
+    # Deduplicate and limit to 3 best chunks
+    seen_idx = set()
+    final_chunks = []
+    for idx in context_chunks:
+        if idx not in seen_idx:
+            final_chunks.append(idx)
+            seen_idx.add(idx)
+    
+    context_chunks = final_chunks[:3]
+    
 
     context = ""
     history = "\n".join(history.split("\n")[-6:])
@@ -421,12 +436,21 @@ Question:
 {question}
 """
 
-    response = client.chat.complete(
-        model="mistral-small-latest",
-        messages=[{"role": "user", "content": prompt}]
-    )
+    try:
+        response = client.chat.complete(
+            model="mistral-small-latest",
+            messages=[{"role": "user", "content": prompt}]
+        )
+    except Exception as exc:
+        logger.exception("Mistral chat.complete failed: %s", exc)
+        # Propagate exception to allow outer fallback to trigger
+        raise
 
-    content = response.choices[0].message.content.strip()
+    try:
+        content = response.choices[0].message.content.strip()
+    except Exception:
+        logger.warning("Mistral response missing expected content structure: %s", getattr(response, 'raw', response))
+        raise Exception("Empty or invalid model response")
     content = content.replace("json", "").replace("```", "").strip()
 
     try:

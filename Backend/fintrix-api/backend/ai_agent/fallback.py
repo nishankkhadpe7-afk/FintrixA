@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from backend.mistral_client import get_mistral_client
+from backend.mistral_client import get_mistral_client, chat_complete_with_retry
 
 
 env_path = Path(__file__).resolve().parent.parent / ".env"
@@ -180,6 +180,32 @@ def sanitize_payload(payload: dict):
     return payload
 
 
+def normalize_fallback_response(payload: dict, question: str, inferred_sources: list[dict]):
+    if not isinstance(payload, dict):
+        payload = {}
+
+    answer = payload.get("answer") or build_local_answer(question)["answer"]
+    key_points = payload.get("key_points") if isinstance(payload.get("key_points"), list) else []
+
+    normalized = {
+        "answer": sanitize_plain_text(answer),
+        "key_points": [sanitize_plain_text(point) for point in key_points[:5]],
+        "sources": payload.get("sources") or inferred_sources,
+        "helpful_links": payload.get("helpful_links") or inferred_sources,
+        "source_reliability": payload.get("source_reliability") or {
+            "score": 0.7,
+            "label": "MEDIUM",
+            "reason": "Fallback response used. Validate against official regulator links before taking action.",
+        },
+        "mode": payload.get("mode", "FALLBACK"),
+        "rule_matches": payload.get("rule_matches", []),
+        "rules_checked": payload.get("rules_checked", 0),
+        "rule_summary": payload.get("rule_summary", "Lightweight AI fallback used."),
+    }
+
+    return sanitize_payload(normalized)
+
+
 def ask_agent_fallback(question: str, history: str = ""):
     prompt = f"""
 You are FinTrix, a practical fintech assistant.
@@ -215,9 +241,12 @@ Rules:
     inferred_sources = infer_sources(question)
 
     try:
-        response = client.chat.complete(
+        response = chat_complete_with_retry(
+            client,
             model="mistral-small-latest",
             messages=[{"role": "user", "content": prompt}],
+            attempts=2,
+            base_delay=0.5,
         )
         content = (
             response.choices[0].message.content.strip()
@@ -229,35 +258,14 @@ Rules:
         end = content.rfind("}") + 1
         if start >= 0 and end > start:
             parsed = json.loads(content[start:end])
-            parsed["sources"] = parsed.get("sources") or inferred_sources
-            parsed["helpful_links"] = parsed.get("helpful_links") or inferred_sources
-            parsed["source_reliability"] = parsed.get("source_reliability") or {
-                "score": 0.7,
-                "label": "MEDIUM",
-                "reason": "Fallback response used. Validate against official regulator links before taking action.",
-            }
-            parsed.setdefault("mode", "FALLBACK")
-            parsed.setdefault("rule_matches", [])
-            parsed.setdefault("rules_checked", 0)
-            parsed.setdefault("rule_summary", "Lightweight AI fallback used.")
-            return sanitize_payload(parsed)
+            return normalize_fallback_response(parsed, question, inferred_sources)
     except Exception:
         pass
 
     local_answer = build_local_answer(question)
 
-    return sanitize_payload({
+    return normalize_fallback_response({
         "answer": local_answer["answer"],
         "key_points": local_answer["key_points"],
-        "sources": inferred_sources,
-        "helpful_links": inferred_sources,
-        "source_reliability": {
-            "score": 0.7,
-            "label": "MEDIUM",
-            "reason": "Fallback response used. Validate against official regulator links before taking action.",
-        },
         "mode": "FALLBACK",
-        "rule_matches": [],
-        "rules_checked": 0,
-        "rule_summary": "Lightweight AI fallback used.",
-    })
+    }, question, inferred_sources)

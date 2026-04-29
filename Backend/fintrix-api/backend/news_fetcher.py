@@ -1,11 +1,14 @@
 import requests
 import os
+import logging
 from dotenv import load_dotenv
 from backend.database import SessionLocal
 from backend.models import News
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
+
+logger = logging.getLogger(__name__)
 
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=env_path)
@@ -42,7 +45,9 @@ def _normalize_newsdata_article(article: Dict[str, Any]) -> Dict[str, Any] | Non
 
 def fetch_finance_news():
     if not API_KEY:
-        return []
+        logger.info("NEWS_API_KEY not configured; skipping news fetch.")
+        return 0
+
     session = requests.Session()
     session.trust_env = False
 
@@ -50,18 +55,27 @@ def fetch_finance_news():
     url = f"https://newsdata.io/api/1/news?apikey={API_KEY}&category=business&language=en"
     try:
         response = session.get(url, timeout=15)
-    except Exception:
-        return []
+    except Exception as exc:
+        logger.warning("Exception while fetching news: %s", exc)
+        return 0
 
     if response.status_code != 200:
-        return []
+        logger.warning("News API returned non-200 status: %s %s", response.status_code, getattr(response, 'text', ''))
+        return 0
 
-    payload = response.json()
+    try:
+        payload = response.json()
+    except Exception as exc:
+        logger.warning("Failed to parse news API response JSON: %s", exc)
+        return 0
+
     articles = payload.get("results", [])
     if not isinstance(articles, list):
-        return []
+        logger.warning("News API returned unexpected payload structure")
+        return 0
 
     db = SessionLocal()
+    added = 0
 
     try:
         for article in articles:
@@ -85,9 +99,12 @@ def fetch_finance_news():
             )
 
             db.add(news)
+            added += 1
 
-        db.commit()
+        if added:
+            db.commit()
+            logger.info("Added %d news items from News API", added)
     finally:
         db.close()
 
-    return articles
+    return added

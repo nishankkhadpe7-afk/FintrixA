@@ -15,6 +15,14 @@ router = APIRouter()
 security = HTTPBearer()
 
 
+def serialize_datetime(value: datetime | None):
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc).isoformat()
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -69,7 +77,7 @@ def create_chat(
     return {
         "id": session.id,
         "title": session.title,
-        "createdAt": str(session.created_at),
+        "createdAt": serialize_datetime(session.created_at),
     }
 
 
@@ -89,8 +97,8 @@ def list_chats(
         {
             "id": session.id,
             "title": session.title or "New chat",
-            "createdAt": str(session.created_at),
-            "updatedAt": str(session.updated_at),
+            "createdAt": serialize_datetime(session.created_at),
+            "updatedAt": serialize_datetime(session.updated_at),
         }
         for session in sessions
     ]
@@ -121,7 +129,7 @@ def get_chat_messages(
         {
             "role": message.role,
             "content": message.content,
-            "timestamp": str(message.timestamp),
+            "timestamp": serialize_datetime(message.timestamp),
         }
         for message in messages
     ]
@@ -167,7 +175,7 @@ def append_chat_message(
     return {
         "role": message.role,
         "content": message.content,
-        "timestamp": str(message.timestamp),
+        "timestamp": serialize_datetime(message.timestamp),
     }
 
 
