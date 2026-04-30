@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[3]
+_FILE_PATH = Path(__file__).resolve()
+WORKSPACE_ROOT = next((parent for parent in _FILE_PATH.parents if (parent / "Database").exists()), _FILE_PATH.parents[1])
 DEFAULT_SQLITE_PATH = WORKSPACE_ROOT / "Database" / "s92.db"
 DEFAULT_SECRET_KEY = "CHANGE_ME_IN_PROD"
 
