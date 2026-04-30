@@ -189,20 +189,16 @@ export default function HeroVideo() {
 
         <div className="pointer-events-none absolute inset-0" />
 
-        <div className="absolute bottom-5 left-1/2 z-20 w-[calc(100%-2rem)] -translate-x-1/2 sm:bottom-6 sm:w-[calc(100%-3rem)] lg:w-[calc(100%-4rem)]">
-          <div className="rounded-full bg-[#032a55]/82 px-4 py-4 backdrop-blur-md sm:px-5">
-            <div className="flex items-center justify-end gap-4">
-              <button
-                type="button"
-                aria-label={isMuted ? "Unmute hero video" : "Mute hero video"}
-                onClick={toggleMute}
-                disabled={videoFailed}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition duration-300 hover:bg-white/28 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
-              </button>
-            </div>
-          </div>
+        <div className="absolute bottom-6 right-6 z-20 sm:bottom-8 sm:right-8">
+          <button
+            type="button"
+            aria-label={isMuted ? "Unmute hero video" : "Mute hero video"}
+            onClick={toggleMute}
+            disabled={videoFailed}
+            className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition duration-300 hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 backdrop-blur-sm"
+          >
+            {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
+          </button>
         </div>
 
         {videoFailed ? (
