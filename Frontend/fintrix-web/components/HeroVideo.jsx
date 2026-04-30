@@ -120,21 +120,8 @@ export default function HeroVideo() {
   }, []);
 
   const togglePlayback = async () => {
-    const video = videoRef.current;
-    if (!video || videoFailed) {
-      return;
-    }
-
-    if (video.paused) {
-      try {
-        await video.play();
-      } catch {
-        setIsPlaying(false);
-      }
-      return;
-    }
-
-    video.pause();
+    // playback control removed per request; keep function to avoid silent refs
+    return;
   };
 
   const handleScrub = (event) => {
@@ -159,8 +146,26 @@ export default function HeroVideo() {
     setIsMuted(nextMuted);
   };
 
-  const showControls = isHovered || !isPlaying;
-  const progressValue = duration ? (currentTime / duration) * 100 : 0;
+  // ensure video autoplays and loops; attempt to play when mounted or when mute toggles
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = isMuted;
+    video.loop = true;
+    video.playsInline = true;
+    video.autoplay = true;
+
+    const tryPlay = async () => {
+      try {
+        await video.play();
+        setIsPlaying(true);
+      } catch {
+        setIsPlaying(false);
+      }
+    };
+
+    tryPlay();
+  }, [isMuted]);
 
   return (
     <section className="relative isolate w-full">
@@ -173,6 +178,7 @@ export default function HeroVideo() {
           ref={videoRef}
           className="h-full w-full object-cover object-center"
           playsInline
+          autoPlay
           preload="metadata"
           muted={isMuted}
           poster=""
@@ -183,30 +189,9 @@ export default function HeroVideo() {
 
         <div className="pointer-events-none absolute inset-0" />
 
-        <div
-          className={`absolute bottom-5 left-1/2 z-20 w-[calc(100%-2rem)] -translate-x-1/2 transition-all duration-300 sm:bottom-6 sm:w-[calc(100%-3rem)] lg:w-[calc(100%-4rem)] ${
-            showControls ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
-          }`}
-        >
+        <div className="absolute bottom-5 left-1/2 z-20 w-[calc(100%-2rem)] -translate-x-1/2 sm:bottom-6 sm:w-[calc(100%-3rem)] lg:w-[calc(100%-4rem)]">
           <div className="rounded-full bg-[#032a55]/82 px-4 py-4 backdrop-blur-md sm:px-5">
-            <div className="flex items-center gap-4">
-              <input
-                type="range"
-                min="0"
-                max={duration || 100}
-                step="0.1"
-                value={Math.min(currentTime, duration || currentTime)}
-                onChange={handleScrub}
-                disabled={!videoReady || videoFailed}
-                aria-label="Seek hero video"
-                className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/25 accent-white disabled:cursor-not-allowed disabled:opacity-40"
-                style={{
-                  background: `linear-gradient(90deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.96) ${progressValue}%, rgba(255,255,255,0.22) ${progressValue}%, rgba(255,255,255,0.22) 100%)`,
-                }}
-              />
-              <div className="min-w-[78px] text-right text-[11px] font-medium text-white/78 sm:text-xs">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </div>
+            <div className="flex items-center justify-end gap-4">
               <button
                 type="button"
                 aria-label={isMuted ? "Unmute hero video" : "Mute hero video"}
@@ -215,15 +200,6 @@ export default function HeroVideo() {
                 className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition duration-300 hover:bg-white/28 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isMuted ? <VolumeOffIcon /> : <VolumeOnIcon />}
-              </button>
-              <button
-                type="button"
-                aria-label={isPlaying ? "Pause hero video" : "Play hero video"}
-                onClick={togglePlayback}
-                disabled={videoFailed}
-                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-black shadow-[0_20px_40px_rgba(0,0,0,0.28)] transition duration-300 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 sm:h-14 sm:w-14"
-              >
-                {isPlaying ? <PauseIcon /> : <PlayIcon />}
               </button>
             </div>
           </div>
