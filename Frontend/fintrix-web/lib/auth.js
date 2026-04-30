@@ -55,9 +55,7 @@ export function getAuthHeaders() {
 export async function fetchCurrentUser() {
   const token = getAuthToken();
   if (!token) return null;
-  const API_BASE = getApiBaseUrl();
-
-  const response = await fetch(`${API_BASE}/api/auth/me`, {
+  const response = await fetch(`/api/auth/me`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,

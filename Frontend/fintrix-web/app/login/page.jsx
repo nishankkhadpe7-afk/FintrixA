@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../components/AuthProvider";
 import { useTheme } from "../../components/ThemeProvider";
-import { getApiBaseUrl } from "../../lib/api";
 
 function normalizeEmail(value) {
   return value.trim().toLowerCase();
@@ -45,7 +44,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { isAuthenticated, isReady, login } = useAuth();
   const { darkMode } = useTheme();
-  const API_BASE = getApiBaseUrl();
   const [mode, setMode] = useState("create");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -105,7 +103,7 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/api/auth/signup`, {
+      const response = await fetch(`/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -140,7 +138,7 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
+      const response = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
