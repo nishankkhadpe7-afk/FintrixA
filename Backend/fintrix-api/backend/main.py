@@ -38,12 +38,12 @@ app.include_router(blog_router, prefix="/api/blog", tags=["Blog"])
 security = HTTPBearer()
 
 allowed_origins = get_allowed_origins()
-allow_all = "*" in allowed_origins
+allow_all = "*" in allowed_origins or len(allowed_origins) == 0  # Allow all if not specified
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=bool(allowed_origins) and not allow_all,
+    allow_origins=["*"],  # Always allow all origins for development
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
